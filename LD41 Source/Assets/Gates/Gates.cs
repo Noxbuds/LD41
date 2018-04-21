@@ -238,7 +238,8 @@ public class Gates : MonoBehaviour {
 
     // A type for a connection between a power source/output and a gate
     // Needs to be public since the lists for the connections are...
-    public struct SourceConnection
+    [System.Serializable]
+    public class SourceConnection
     {
         // The gate that's connected
         public List<GateBehaviour> Gates;
@@ -251,6 +252,66 @@ public class Gates : MonoBehaviour {
 
         // The ID of the input on the gate this is connected to (not always used)
         public List<int> GateInputIDs;
+
+        // Whether or not it's powered
+        public bool Powered;
+
+        /// <summary>
+        /// Removes connections
+        /// </summary>
+        public void RemoveConnections(int id)
+        {
+            // Sever inbound connection
+            if (GateInputIDs[id] == 0)
+                Gates[id].Source1 = null;
+            else
+                Gates[id].Source2 = null;
+
+            // Sever outbound connection
+            Gates[id].EndConnection = null;
+
+            // Remove wire
+            if (Gates[id].EndWire != null)
+                Destroy(Gates[id].EndWire);
+
+            // Sever outbound connection
+            Gates.RemoveAt(id);
+            GateInputIDs.RemoveAt(id);
+        }
+
+        /// <summary>
+        /// Resets all lists
+        /// </summary>
+        public void RemoveAllConnections()
+        {
+            while (Gates.Count > 0)
+            {
+                // Sever inbound connection
+                if (GateInputIDs[0] == 0)
+                    Gates[0].Source1 = null;
+                else
+                    Gates[0].Source2 = null;
+
+                // Sever outbound connection
+                Gates[0].EndConnection = null;
+
+                // Remove wire
+                if (Gates[0].EndWire != null)
+                    Destroy(Gates[0].EndWire);
+
+                // Sever outbound connection
+                Gates.RemoveAt(0);
+                GateInputIDs.RemoveAt(0);
+            }
+        }
+
+        /// <summary>
+        /// Gets the ID of a speciifc gate in the connections
+        /// </summary>
+        public int GetGateID(GateBehaviour Gate)
+        {
+            return Gates.FindIndex(0, Gates.Count, x => x == Gate);
+        }
     }
 
     // A type for holding data about an input or ouput
@@ -262,9 +323,6 @@ public class Gates : MonoBehaviour {
 
         // How much current this supplies
         public float CurrentSupply;
-
-        // The position of this connection
-        public Vector2 Position;
     }
 
     // A list of inputs and outputs, and their positions
@@ -350,6 +408,52 @@ public class Gates : MonoBehaviour {
             {
                 if (CurrentGates[i].Working)
                     CurrentGates[i].RunLogic();
+            }
+
+            // Go through the list of power sources and power
+            for (int i = 0; i < InputConnections.Count; i++)
+            {
+                // Get a shorthand reference for the current source
+                SourceConnection CurrentSource = InputConnections[i];
+
+                // Power each gate
+                for (int j = 0; j < InputConnections[i].Gates.Count; j++)
+                {
+                    // Power gate
+                    if (CurrentSource.GateInputIDs[j] == 0)
+                        CurrentSource.Gates[j].Input1 = true;
+                    else
+                        CurrentSource.Gates[j].Input2 = true;
+                }
+            }
+        }
+        else
+        {
+            // Go through the list of current gates and stop power
+            for (int i = 0; i < CurrentGates.Count; i++)
+            {
+                // Stop power
+                //CurrentGates[i].Input1 = false;
+                CurrentGates[i].Input2 = false;
+                CurrentGates[i].Output = false;
+                CurrentGates[i].ColourWires();
+            }
+
+            // Go through the list of power sources and reset light
+            for (int i = 0; i < InputConnections.Count; i++)
+            {
+                // Get a shorthand reference for the current source
+                SourceConnection CurrentSource = InputConnections[i];
+
+                // Power each gate
+                for (int j = 0; j < InputConnections[i].Gates.Count; j++)
+                {
+                    // Un-power gate
+                    if (CurrentSource.GateInputIDs[j] == 0)
+                        CurrentSource.Gates[j].Input1 = false;
+                    else
+                        CurrentSource.Gates[j].Input2 = false;
+                }
             }
         }
     }

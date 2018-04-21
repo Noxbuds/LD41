@@ -232,7 +232,12 @@ Prefab:
     - target: {fileID: 114342631976866272, guid: b482be6d75d0e1c4f87a4d3039005421,
         type: 2}
       propertyPath: Inputs.Array.size
-      value: 0
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114342631976866272, guid: b482be6d75d0e1c4f87a4d3039005421,
+        type: 2}
+      propertyPath: Outputs.Array.size
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4980690796275872, guid: b482be6d75d0e1c4f87a4d3039005421, type: 2}
       propertyPath: m_LocalPosition.x

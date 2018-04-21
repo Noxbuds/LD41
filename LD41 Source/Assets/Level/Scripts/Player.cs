@@ -25,7 +25,9 @@ public class Player : MonoBehaviour {
     public bool IsDraggingWire;
     public bool DraggingOutput;
     public bool DraggingSource;
+    public bool DraggingEnd;
     public GateBehaviour GateDraggingFrom; // the gate we started dragging from
+    public Gates.SourceConnection SourceDraggingFrom; // source/end dragging connection
     public int GateDraggingFromInputID; // the input ID of the gate we're dragging from
     public Vector2 DraggingOrigin; // the screen co-ordinates that the user started dragging from
     public Material WireMaterial;
@@ -74,6 +76,7 @@ public class Player : MonoBehaviour {
         PreviewLine.transform.position = Vector2.zero;
         PreviewLine.material = WireMaterial;
         PreviewLine.startWidth = PreviewLine.endWidth = 0.005f;
+        PreviewLine.startColor = PreviewLine.endColor = GateBehaviour.UnpoweredColour;
         PreviewLine.gameObject.SetActive(false);
 	}
 	
@@ -184,7 +187,128 @@ public class Player : MonoBehaviour {
             // Render the inputs and outputs
             for (int i = 0; i < _Gates.Inputs.Count; i++)
             {
-                
+                // Calculate positions
+                float ButtonX = SourceBasePos.x;
+                float ButtonY = SourceBasePos.y + 90f * i * UIScale;
+                float ButtonWidth = 28 * UIScale;
+
+                // Draw the button. Stay consistent in the colour and icons as the rest of the gates
+                if (GUI.Button(new Rect(ButtonX, ButtonY, ButtonWidth, ButtonWidth), "", OutputButtonStyle) && CurrentTool == PlayerTool.CreateWire)
+                {
+                    // If we aren't already dragging, make it so
+                    if (!IsDraggingWire)
+                    {
+                        // Play sound
+                        PickupSound.Play();
+
+                        // Pickup wire
+                        IsDraggingWire = true;
+                        DraggingOutput = false;
+                        DraggingSource = true;
+                        DraggingEnd = false;
+                        GateDraggingFrom = null;
+                        SourceDraggingFrom = _Gates.InputConnections[i];
+                        DraggingOrigin = new Vector2(ButtonX, Screen.height - ButtonY);
+                    }
+                    else if (IsDraggingWire && !DraggingOutput)
+                    {
+                        // Play sound
+                        DropSound.Play();
+
+                        // Stop dragging wire
+                        IsDraggingWire = false;
+
+                        // Connect the source
+                        _Gates.InputConnections[i].Gates.Add(GateDraggingFrom);
+                        _Gates.InputConnections[i].GateInputIDs.Add(GateDraggingFromInputID);
+
+                        // Connect the gate
+                        if (GateDraggingFromInputID == 0)
+                            GateDraggingFrom.Source1 = _Gates.InputConnections[i];
+                        else
+                            GateDraggingFrom.Source2 = _Gates.InputConnections[i];
+
+                        // Create a wire
+                        LineRenderer NewWire = CreateSourceEndWire(true, ButtonWidth, ButtonX, ButtonY);
+
+                        // Parent it to the gate
+                        NewWire.transform.parent = GateDraggingFrom.transform;
+
+                        // Assign it to the gate
+                        if (DraggingOutput)
+                        {
+                            // Assign it as an end wire
+                            GateDraggingFrom.EndWire = NewWire;
+                        }
+                        else
+                        {
+                            // Assign it as a source wire
+                            if (GateDraggingFromInputID == 0)
+                                GateDraggingFrom.Source1Wire = NewWire;
+                            else
+                                GateDraggingFrom.Source2Wire = NewWire;
+                        }
+                    }
+                }
+            }
+
+            // Render outputs
+            for (int i = 0; i < _Gates.Outputs.Count; i++)
+            {
+                // Calculate positions
+                float ButtonX = OutBasePos.x;
+                float ButtonY = OutBasePos.y + 90f * i * UIScale;
+                float ButtonWidth = 28 * UIScale;
+
+                // Draw the button. Stay consistent in the colour and icons as the rest of the gates
+                if (GUI.Button(new Rect(ButtonX, ButtonY, ButtonWidth, ButtonWidth), "", InputButtonStyle) && CurrentTool == PlayerTool.CreateWire)
+                {
+                    // If we aren't already dragging, make it so
+                    if (!IsDraggingWire)
+                    {
+                        // Play sound
+                        PickupSound.Play();
+
+                        // Pickup wire
+                        IsDraggingWire = true;
+                        DraggingOutput = false;
+                        DraggingSource = false;
+                        DraggingEnd = true;
+                        GateDraggingFrom = null;
+                        SourceDraggingFrom = _Gates.OutputConnections[i];
+                        DraggingOrigin = new Vector2(ButtonX, Screen.height - ButtonY);
+                    }
+                    else if (IsDraggingWire && DraggingOutput)
+                    {
+                        // Sever connections first if the output is connected already
+                        if (_Gates.OutputConnections[i].Gates.Count > 0)
+                        {
+                            _Gates.OutputConnections[i].RemoveAllConnections();
+                        }
+
+                        // Play sound
+                        DropSound.Play();
+
+                        // Stop dragging wire
+                        IsDraggingWire = false;
+
+                        // Connect the source
+                        _Gates.OutputConnections[i].Gates.Add(GateDraggingFrom);
+                        _Gates.OutputConnections[i].GateInputIDs.Add(GateDraggingFromInputID);
+
+                        // Connect the gate
+                        GateDraggingFrom.EndConnection = _Gates.OutputConnections[i];
+
+                        // Create a wire
+                        LineRenderer NewWire = CreateSourceEndWire(false, ButtonWidth, ButtonX, ButtonY);
+
+                        // Parent it to the gate
+                        NewWire.transform.parent = GateDraggingFrom.transform;
+
+                        // Assign it as an end wire
+                        GateDraggingFrom.EndWire = NewWire;
+                    }
+                }
             }
 
             // Fetch a local copy of the gates list
@@ -227,13 +351,21 @@ public class Player : MonoBehaviour {
                             Destroy(Gates.CurrentGates[i].WireObject.gameObject);
                         }
 
+                        // If end-connected already, delete connection
+                        if (Gates.CurrentGates[i].EndConnection != null)
+                        {
+                            Gates.CurrentGates[i].EndConnection.RemoveConnections(Gates.CurrentGates[i].EndConnection.GetGateID(Gates.CurrentGates[i]));
+                        }
+
                         // Pickup wire
                         IsDraggingWire = true;
                         DraggingOutput = true;
+                        DraggingSource = false;
+                        DraggingEnd = false;
                         GateDraggingFrom = Gates.CurrentGates[i];
                         DraggingOrigin = new Vector2(OutputX, Screen.height - OutputY);
                     }
-                    else if (IsDraggingWire && !DraggingOutput)
+                    else if (IsDraggingWire && !DraggingOutput && Gates.CurrentGates[i] != GateDraggingFrom && !DraggingSource && !DraggingEnd)
                     {
                         // Play sound
                         DropSound.Play();
@@ -258,6 +390,12 @@ public class Player : MonoBehaviour {
                             Destroy(Gates.CurrentGates[i].WireObject.gameObject);
                         }
 
+                        // If end-connected already, delete connection
+                        if (Gates.CurrentGates[i].EndConnection != null)
+                        {
+                            Gates.CurrentGates[i].EndConnection.RemoveConnections(Gates.CurrentGates[i].EndConnection.GetGateID(Gates.CurrentGates[i]));
+                        }
+
                         // Connect this gate to the one we dragged from
                         Gates.CurrentGates[i].OutputGate = GateDraggingFrom;
                         Gates.CurrentGates[i].OGCID = GateDraggingFromInputID;
@@ -270,6 +408,55 @@ public class Player : MonoBehaviour {
 
                         // Create wire
                         CreateWire(OutputWidth, OutputX, OutputY, i, 2);
+                    }
+                    else if (IsDraggingWire && DraggingEnd)
+                    {
+                        // Play sound
+                        DropSound.Play();
+
+                        // Stop dragging wire
+                        IsDraggingWire = false;
+                        DraggingEnd = false;
+                        DraggingSource = false;
+                        DraggingOutput = false;
+
+                        // Make sure to disconnect other wires
+                        if (Gates.CurrentGates[i].OutputGate != null)
+                        {
+                            // Get rid of the input connection
+                            if (Gates.CurrentGates[i].OGCID == 0)
+                                Gates.CurrentGates[i].OutputGate.Input1Gate = null;
+                            else
+                                Gates.CurrentGates[i].OutputGate.Input2Gate = null;
+
+                            // Get rid of the output connection
+                            Gates.CurrentGates[i].OutputGate = null;
+
+                            // Get rid of the wire
+                            Destroy(Gates.CurrentGates[i].WireObject.gameObject);
+                        }
+
+                        // If end-connected already, delete connection
+                        if (Gates.CurrentGates[i].EndConnection != null)
+                        {
+                            Gates.CurrentGates[i].EndConnection.RemoveConnections(Gates.CurrentGates[i].EndConnection.GetGateID(Gates.CurrentGates[i]));
+                        }
+
+                        // Connect this gate to the end
+                        Gates.CurrentGates[i].EndConnection = SourceDraggingFrom;
+
+                        // Connect end to the gate
+                        SourceDraggingFrom.Gates.Add(Gates.CurrentGates[i]);
+                        SourceDraggingFrom.GateInputIDs.Add(0);
+
+                        // Create a wire
+                        LineRenderer NewWire = CreateSourceEndWire(false, OutputWidth, OutputX, OutputY);
+
+                        // Parent it to the gate
+                        NewWire.transform.parent = Gates.CurrentGates[i].transform;
+
+                        // Assign it as an end wire
+                        Gates.CurrentGates[i].EndWire = NewWire;
                     }
                 }
 
@@ -298,7 +485,7 @@ public class Player : MonoBehaviour {
                             GateDraggingFromInputID = 0;
                             DraggingOrigin = new Vector2(InputX, Screen.height - InputY1);
                         }
-                        else if (IsDraggingWire && DraggingOutput && Gates.CurrentGates[i] != GateDraggingFrom)
+                        else if (IsDraggingWire && DraggingOutput && Gates.CurrentGates[i] != GateDraggingFrom && !DraggingSource & !DraggingEnd)
                         {
                             // Play sound
                             DropSound.Play();
@@ -328,6 +515,51 @@ public class Player : MonoBehaviour {
 
                             // Create wire
                             CreateWire(InputWidth, InputX, InputY1, i, 0);
+                        }
+                        else if (IsDraggingWire && DraggingSource)
+                        {
+                            // Play sound
+                            DropSound.Play();
+
+                            // Stop dragging wire
+                            IsDraggingWire = false;
+                            DraggingEnd = false;
+                            DraggingSource = false;
+
+                            // Make sure to disconnect other wires
+                            if (Gates.CurrentGates[i].Input1Gate != null)
+                            {
+                                // Get rid of the input connection
+                                Gates.CurrentGates[i].OutputGate.Input1Gate = null;
+
+                                // Get rid of the output connection
+                                Gates.CurrentGates[i].Input1Gate = null;
+
+                                // Get rid of the wire
+                                Destroy(Gates.CurrentGates[i].Input1Gate.WireObject);
+                            }
+
+                            // If source-connected already, delete connection
+                            if (Gates.CurrentGates[i].Source1 != null)
+                            {
+                                Gates.CurrentGates[i].Source1.RemoveConnections(Gates.CurrentGates[i].Source1.GetGateID(Gates.CurrentGates[i]));
+                            }
+
+                            // Connect this gate to the source
+                            Gates.CurrentGates[i].Source1 = SourceDraggingFrom;
+
+                            // Connect end to the gate
+                            SourceDraggingFrom.Gates.Add(Gates.CurrentGates[i]);
+                            SourceDraggingFrom.GateInputIDs.Add(0);
+
+                            // Create a wire
+                            LineRenderer NewWire = CreateSourceEndWire(true, InputWidth, InputX, InputY1);
+
+                            // Parent it to the gate
+                            NewWire.transform.parent = Gates.CurrentGates[i].transform;
+
+                            // Assign it as an end wire
+                            Gates.CurrentGates[i].Source1Wire = NewWire;
                         }
                     }
 
@@ -377,6 +609,51 @@ public class Player : MonoBehaviour {
                             // Create wire
                             CreateWire(InputWidth, InputX, InputY2, i, 1);
                         }
+                    }
+                    else if (IsDraggingWire && DraggingSource)
+                    {
+                        // Play sound
+                        DropSound.Play();
+
+                        // Stop dragging wire
+                        IsDraggingWire = false;
+                        DraggingEnd = false;
+                        DraggingSource = false;
+
+                        // Make sure to disconnect other wires
+                        if (Gates.CurrentGates[i].Input2Gate != null)
+                        {
+                            // Get rid of the input connection
+                            Gates.CurrentGates[i].OutputGate.Input2Gate = null;
+
+                            // Get rid of the output connection
+                            Gates.CurrentGates[i].Input2Gate = null;
+
+                            // Get rid of the wire
+                            Destroy(Gates.CurrentGates[i].Input2Gate.WireObject);
+                        }
+
+                        // If source-connected already, delete connection
+                        if (Gates.CurrentGates[i].Source2 != null)
+                        {
+                            Gates.CurrentGates[i].Source2.RemoveConnections(Gates.CurrentGates[i].Source2.GetGateID(Gates.CurrentGates[i]));
+                        }
+
+                        // Connect this gate to the source
+                        Gates.CurrentGates[i].Source2 = SourceDraggingFrom;
+
+                        // Connect end to the gate
+                        SourceDraggingFrom.Gates.Add(Gates.CurrentGates[i]);
+                        SourceDraggingFrom.GateInputIDs.Add(0);
+
+                        // Create a wire
+                        LineRenderer NewWire = CreateSourceEndWire(true, InputWidth, InputX, InputY2);
+
+                        // Parent it to the gate
+                        NewWire.transform.parent = Gates.CurrentGates[i].transform;
+
+                        // Assign it as an end wire
+                        Gates.CurrentGates[i].Source2Wire = NewWire;
                     }
                 }
                 else
@@ -455,11 +732,11 @@ public class Player : MonoBehaviour {
             }
         }
     }
-    
+
     /// <summary>
     /// Creates a line renderer between two gates
     /// </summary>
-    void CreateWire(float ImageWidth, float ButtonX, float ButtonY, int GateIndex, int ConnectionType)
+    LineRenderer CreateWire(float ImageWidth, float ButtonX, float ButtonY, int GateIndex, int ConnectionType)
     {
         // Create the wire object
         GameObject Wire = new GameObject();
@@ -503,5 +780,38 @@ public class Player : MonoBehaviour {
             Gates.CurrentGates[GateIndex].Input1Gate.WireObject = WireLine;
         else if (ConnectionType == 1)
             Gates.CurrentGates[GateIndex].Input2Gate.WireObject = WireLine;
+
+        // Return line renderer
+        return WireLine;
+    }
+
+    /// <summary>
+    /// Creates a line renderer between a gate and source/end
+    /// </summary>
+    LineRenderer CreateSourceEndWire(bool IsSource, float ImageWidth, float ButtonX, float ButtonY)
+    {
+        // Create the wire object
+        GameObject Wire = new GameObject();
+        Wire.transform.position = Camera.main.ScreenToWorldPoint(new Vector2(ButtonX, ButtonY));
+        Wire.gameObject.name = IsSource ? "source wire" : "end wire";
+
+        // Line renderer
+        LineRenderer WireLine = Wire.AddComponent<LineRenderer>();
+        WireLine.sortingOrder += 10;
+        WireLine.startWidth = WireLine.endWidth = 0.005f;
+        WireLine.material = WireMaterial;
+
+        // Fix the dragging origin
+        DraggingOrigin.x += ImageWidth / 2f;
+        DraggingOrigin.y -= ImageWidth / 2f;
+
+        // Set the points on the line renderer
+        Vector2 LRPoint1 = Camera.main.ScreenToWorldPoint(DraggingOrigin);
+        Vector2 LRPoint2 = Camera.main.ScreenToWorldPoint(new Vector2(ButtonX + ImageWidth / 2f, Screen.height - ButtonY - ImageWidth / 2f));
+
+        WireLine.SetPositions(new Vector3[] { new Vector3(LRPoint1.x, LRPoint1.y, -5), new Vector3(LRPoint2.x, LRPoint2.y, -5) });
+
+        // Return it
+        return WireLine;
     }
 }

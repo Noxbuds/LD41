@@ -71,40 +71,59 @@ public class LevelManager : MonoBehaviour {
         switch (PanelSize)
         {
             case EPanelSize.Large:
+                // Create the foreground panel
                 FGPanelObj = Instantiate(LargePanel);
                 FGPanelObj.name = "large panel";
                 FGPanelObj.transform.parent = PanelsRoot.transform;
 
+                // Create the switch
                 SwitchObj = Instantiate(SwitchPrefab, LargeSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
 
-                ThePlayer.SourceBasePos = new Vector2(-0.15f, 0.1f);
-                ThePlayer.OutBasePos = new Vector2(0.15f, 0.1f);
+                // Setup the player's base positions for inputs+outputs
+                ThePlayer.SourceBasePos = Camera.main.WorldToScreenPoint(new Vector2(-0.24f, 0.19f));
+                ThePlayer.OutBasePos = Camera.main.WorldToScreenPoint(new Vector2(0.22f, 0.19f));
+
+                // Flip the base positions' y-coordinates
+                ThePlayer.SourceBasePos.y = Screen.height - ThePlayer.SourceBasePos.y;
+                ThePlayer.OutBasePos.y = Screen.height - ThePlayer.OutBasePos.y;
                 break;
             case EPanelSize.Medium:
+                // Create the foreground panel
                 FGPanelObj = Instantiate(MediumPanel);
                 FGPanelObj.name = "medium panel";
                 FGPanelObj.transform.parent = PanelsRoot.transform;
 
+                // Create the switch
                 SwitchObj = Instantiate(SwitchPrefab, MediumSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
 
-                ThePlayer.SourceBasePos = new Vector2(-0.24f, 0.1f);
-                ThePlayer.OutBasePos = new Vector2(0.22f, 0.1f);
+                ThePlayer.SourceBasePos = Camera.main.WorldToScreenPoint(new Vector2(-0.24f, 0.1f));
+                ThePlayer.OutBasePos = Camera.main.WorldToScreenPoint(new Vector2(0.22f, 0.1f));
+
+                ThePlayer.SourceBasePos.y = Screen.height - ThePlayer.SourceBasePos.y;
+                ThePlayer.OutBasePos.y = Screen.height - ThePlayer.OutBasePos.y;
                 break;
             case EPanelSize.Small:
+                // Create the foreground panel
                 FGPanelObj = Instantiate(SmallPanel);
                 FGPanelObj.name = "small panel";
                 FGPanelObj.transform.parent = PanelsRoot.transform;
 
+                // Create the switch
                 SwitchObj = Instantiate(SwitchPrefab, SmallSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
 
-                ThePlayer.SourceBasePos = new Vector2(-0.24f, 0.19f);
-                ThePlayer.OutBasePos = new Vector2(0.22f, 0.19f);
+                // Setup the player's base positions for inputs+outputs
+                ThePlayer.SourceBasePos = Camera.main.WorldToScreenPoint(new Vector2(-0.15f, 0.1f));
+                ThePlayer.OutBasePos = Camera.main.WorldToScreenPoint(new Vector2(0.15f, 0.1f));
+
+                // Flip the base positions' y-coordinates
+                ThePlayer.SourceBasePos.y = Screen.height - ThePlayer.SourceBasePos.y;
+                ThePlayer.OutBasePos.y = Screen.height - ThePlayer.OutBasePos.y;
                 break;
         }
 	}
