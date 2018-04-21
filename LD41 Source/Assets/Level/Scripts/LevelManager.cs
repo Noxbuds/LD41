@@ -34,18 +34,34 @@ public class LevelManager : MonoBehaviour {
     public Vector2 LargeSwitchPos;
 
     // Local references
-    private GameObject BGPanelObj;
+    private List<GameObject> BGPanelObjs;
     private GameObject FGPanelObj;
     private GameObject SwitchObj;
+    private GameObject PanelsRoot;
 
 	// Use this for initialization
 	void Start () {
 		// Setup the level
         ViewingPanel = true;
 
-        // First spawn in the background panel
-        BGPanelObj = Instantiate(PanelBackground);
-        
+        // Tidy up a bit
+        PanelsRoot = new GameObject();
+        PanelsRoot.transform.position = new Vector2(0, 0);
+        PanelsRoot.name = "Panel Root Object";
+
+        // Initialise the BG Panel Objects list
+        BGPanelObjs = new List<GameObject>();
+
+        // First spawn in the background panels
+        BGPanelObjs.Add(Instantiate(PanelBackground));
+        BGPanelObjs.Add(Instantiate(PanelBackground, new Vector2(-0.64f, 0), new Quaternion(0, 0, 0, 0)));
+        BGPanelObjs.Add(Instantiate(PanelBackground, new Vector2(0.64f, 0), new Quaternion(0, 0, 0, 0)));
+
+        for (int i = 0; i < BGPanelObjs.Count; i++)
+        {
+            BGPanelObjs[i].transform.parent = PanelsRoot.transform;
+        }
+
         // Then the panel, switch, various other things that depend on panel size
         // Use a switch statement and kill many stones with one bird ;)
         switch (PanelSize)
@@ -53,32 +69,43 @@ public class LevelManager : MonoBehaviour {
             case EPanelSize.Large:
                 FGPanelObj = Instantiate(LargePanel);
                 FGPanelObj.name = "large panel";
+                FGPanelObj.transform.parent = PanelsRoot.transform;
 
                 SwitchObj = Instantiate(SwitchPrefab, LargeSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
-
+                SwitchObj.transform.parent = PanelsRoot.transform;
                 break;
             case EPanelSize.Medium:
                 FGPanelObj = Instantiate(MediumPanel);
                 FGPanelObj.name = "medium panel";
+                FGPanelObj.transform.parent = PanelsRoot.transform;
 
                 SwitchObj = Instantiate(SwitchPrefab, MediumSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
-
+                SwitchObj.transform.parent = PanelsRoot.transform;
                 break;
             case EPanelSize.Small:
                 FGPanelObj = Instantiate(SmallPanel);
                 FGPanelObj.name = "small panel";
+                FGPanelObj.transform.parent = PanelsRoot.transform;
 
                 SwitchObj = Instantiate(SwitchPrefab, SmallSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
-
+                SwitchObj.transform.parent = PanelsRoot.transform;
                 break;
         }
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
+		// "Animate" the switch
+        if (PowerFlowing)
+        {
+            SwitchObj.GetComponent<Animator>().Play("Panel Switch On");
+        }
+        else
+        {
+            SwitchObj.GetComponent<Animator>().Play("Panel Switch Off");
+        }
 	}
 }

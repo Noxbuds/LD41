@@ -34,6 +34,7 @@ public class Gates : MonoBehaviour {
 
     // A list of currently spawned gates
     public static List<GateBehaviour> CurrentGates;
+    private static GameObject GateParent;
 
     // Create a static set of logic gates
     // AND Gate first
@@ -175,6 +176,7 @@ public class Gates : MonoBehaviour {
         GateObject.transform.position = Position;
         GateObject.transform.localScale = Vector3.one * 0.2f;
         GateObject.name = "Gate (" + Gate.GateName + ")"; // name is just "Gate (Type)", using gate list count is gonna be odd :)
+        GateObject.transform.parent = GateParent.transform;
 
         // Setup gate behaviour
         GateBehaviour GateScript = GateObject.AddComponent<GateBehaviour>();
@@ -290,6 +292,9 @@ public class Gates : MonoBehaviour {
     {
         // Setup the gates first
         SetupGates();
+        GateParent = new GameObject();
+        GateParent.transform.position = new Vector2(0, 0);
+        GateParent.name = "Logic Gate Parent Object";
 
         // Assign the sprites
         AssignSprites();

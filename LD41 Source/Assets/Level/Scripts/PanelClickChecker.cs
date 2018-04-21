@@ -35,6 +35,15 @@ public class PanelClickChecker : MonoBehaviour {
     void OnMouseDown()
     {
         if (gameObject.name == "panel switch")
-            _LevelManager.PowerFlowing = !_LevelManager.PowerFlowing;
+        {
+            // Play sound
+            GetComponent<AudioSource>().Play();
+
+            // Toggle power
+            if (_LevelManager.PowerFlowing)
+                _LevelManager.PowerFlowing = false;
+            else
+                _LevelManager.PowerFlowing = true;
+        }
     }
 }
