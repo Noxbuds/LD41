@@ -108,6 +108,48 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &182182045
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 182182046}
+  - component: {fileID: 182182047}
+  m_Layer: 0
+  m_Name: Player
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &182182046
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 182182045}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 559719169}
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &182182047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 182182045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81eb9f86e6b34344293d6d41e7ced8e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MouseInBounds: 0
 --- !u!1 &559719164
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,7 +210,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 0.5
+  orthographic size: 0.24
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -190,11 +232,11 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 559719164}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 182182046}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &607632464
@@ -239,7 +281,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4980690796275872, guid: b482be6d75d0e1c4f87a4d3039005421, type: 2}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114342631976866272, guid: b482be6d75d0e1c4f87a4d3039005421,
         type: 2}
@@ -310,6 +352,7 @@ MonoBehaviour:
   PanelSize: 2
   SwitchPrefab: {fileID: 1398650282559168, guid: c086cd35b6c54f844a8104f857ecb2a5,
     type: 2}
+  PowerFlowing: 0
   PanelBackground: {fileID: 1240111679799652, guid: 58cfaf288dd47b948b09a2605e5e3d03,
     type: 2}
   SmallSwitchPos: {x: 0.11, y: -0.11}
@@ -352,7 +395,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4348003069865568, guid: d06428d3bce04e340a1c62a3af759a1e, type: 2}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: d06428d3bce04e340a1c62a3af759a1e, type: 2}

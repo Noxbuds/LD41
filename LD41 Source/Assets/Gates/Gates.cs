@@ -160,9 +160,20 @@ public class Gates : MonoBehaviour {
     /// <param name="Location">The world position to spawn it</param>
     public static GateBehaviour SpawnGate(LogicGate Gate, Vector2 Position)
     {
+        // Check that there are no other gates nearby
+        for (int i = 0; i < CurrentGates.Count; i++)
+        {
+            // If the distance is below a certain threshold, do not allow a gate to be placed
+            if (Mathf.Pow(Vector2.Distance(Position, CurrentGates[i].transform.position), 2f) < 0.001f)
+            {
+                return null;
+            }
+        }
+
         // Setup the object
         GameObject GateObject = new GameObject();
         GateObject.transform.position = Position;
+        GateObject.transform.localScale = Vector3.one * 0.2f;
         GateObject.name = "Gate (" + Gate.GateName + ")"; // name is just "Gate (Type)", using gate list count is gonna be odd :)
 
         // Setup gate behaviour
@@ -172,6 +183,7 @@ public class Gates : MonoBehaviour {
         // Setup sprite renderer
         SpriteRenderer GateSR = GateObject.AddComponent<SpriteRenderer>();
         GateSR.sprite = Gate.GateSprite;
+        GateSR.sortingOrder = 2;
 
         // Add the gate to the list, bearing in mind we need the GateBehaviour
         CurrentGates.Add(GateScript);
@@ -238,6 +250,9 @@ public class Gates : MonoBehaviour {
         // Whether this is powered or not
         public bool Powered;
 
+        // How much current this supplies
+        public float CurrentSupply;
+
         // The position of this connection
         public Vector2 Position;
     }
@@ -251,6 +266,9 @@ public class Gates : MonoBehaviour {
     public List<SourceConnection> InputConnections;
     public List<SourceConnection> OutputConnections;
     
+    // Private reference to level manager
+    LevelManager _LevelManager;
+
     /// <summary>
     /// Assigns sprites to the gates
     /// </summary>
@@ -265,9 +283,6 @@ public class Gates : MonoBehaviour {
         Gate_NOT.GateSprite = Sprite_NOT;
     }
 
-    GateBehaviour TestGate1;
-    GateBehaviour TestGate2;
-
     /// <summary>
     /// Called when the game starts/this object is created
     /// </summary>
@@ -278,6 +293,9 @@ public class Gates : MonoBehaviour {
 
         // Assign the sprites
         AssignSprites();
+
+        // Get the level manager
+        _LevelManager = GameObject.FindObjectOfType<LevelManager>();
     }
 
     /// <summary>
@@ -285,11 +303,14 @@ public class Gates : MonoBehaviour {
     /// </summary>
     void Update()
     {
-        // Go through the list of current gates and run the logic if they work
-        for (int i = 0; i < CurrentGates.Count; i++)
+        if (_LevelManager.PowerFlowing)
         {
-            if (CurrentGates[i].Working)
-                CurrentGates[i].RunLogic();
+            // Go through the list of current gates and run the logic if they work
+            for (int i = 0; i < CurrentGates.Count; i++)
+            {
+                if (CurrentGates[i].Working)
+                    CurrentGates[i].RunLogic();
+            }
         }
     }
 }

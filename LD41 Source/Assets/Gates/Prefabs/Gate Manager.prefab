@@ -58,5 +58,5 @@ MonoBehaviour:
   Sprite_NOR: {fileID: 0}
   Sprite_XNOR: {fileID: 0}
   Sprite_NOT: {fileID: 0}
-  Inputs: 
-  Outputs: 
+  Inputs: []
+  Outputs: []
