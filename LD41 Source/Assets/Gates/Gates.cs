@@ -261,16 +261,21 @@ public class Gates : MonoBehaviour {
         /// </summary>
         public void RemoveConnections(int id)
         {
-            // Sever inbound connection
-            if (GateInputIDs[id] == 0)
-                Gates[id].Source1 = null;
-            else
-                Gates[id].Source2 = null;
+            // Only do stuff with gate sources if the ID is less than 2 (2 = output-only connection)
+            if (GateInputIDs[id] < 2)
+            {
+                // Sever inbound connection
+                Gates[id].Sources[GateInputIDs[id]] = null;
+
+                // Remove source wire
+                if (Gates[id].SourceWires[GateInputIDs[id]] != null)
+                    Destroy(Gates[id].SourceWires[GateInputIDs[id]]);
+            }
 
             // Sever outbound connection
             Gates[id].EndConnection = null;
 
-            // Remove wire
+            // Remove end wire
             if (Gates[id].EndWire != null)
                 Destroy(Gates[id].EndWire);
 
@@ -286,22 +291,7 @@ public class Gates : MonoBehaviour {
         {
             while (Gates.Count > 0)
             {
-                // Sever inbound connection
-                if (GateInputIDs[0] == 0)
-                    Gates[0].Source1 = null;
-                else
-                    Gates[0].Source2 = null;
-
-                // Sever outbound connection
-                Gates[0].EndConnection = null;
-
-                // Remove wire
-                if (Gates[0].EndWire != null)
-                    Destroy(Gates[0].EndWire);
-
-                // Sever outbound connection
-                Gates.RemoveAt(0);
-                GateInputIDs.RemoveAt(0);
+                RemoveConnections(0);
             }
         }
 
@@ -314,23 +304,9 @@ public class Gates : MonoBehaviour {
         }
     }
 
-    // A type for holding data about an input or ouput
-    [System.Serializable]
-    public struct InputOutputData
-    {
-        // Whether this is powered or not
-        public bool Powered;
-
-        // How much current this supplies
-        public float CurrentSupply;
-    }
-
-    // A list of inputs and outputs, and their positions
-    // Note: Inputs and outputs must be setup on a per-level basis
-    public List<InputOutputData> Inputs;
-    public List<InputOutputData> Outputs;
-
-    // And a list of input and output connections
+    // A list of input and output connections
+    public int InputCount;
+    public int OutputCount;
     public List<SourceConnection> InputConnections;
     public List<SourceConnection> OutputConnections;
     
@@ -373,7 +349,7 @@ public class Gates : MonoBehaviour {
         OutputConnections = new List<SourceConnection>();
 
         // Add a source connection for each input and output
-        for (int i = 0; i < Inputs.Count; i++)
+        for (int i = 0; i < InputCount; i++)
         {
             SourceConnection NewConnection = new SourceConnection();
             NewConnection.IsInputConnection = true;
@@ -384,7 +360,7 @@ public class Gates : MonoBehaviour {
             InputConnections.Add(NewConnection);
         }
 
-        for (int i = 0; i < Outputs.Count; i++)
+        for (int i = 0; i < OutputCount; i++)
         {
             SourceConnection NewConnection = new SourceConnection();
             NewConnection.IsInputConnection = false;
@@ -420,10 +396,7 @@ public class Gates : MonoBehaviour {
                 for (int j = 0; j < InputConnections[i].Gates.Count; j++)
                 {
                     // Power gate
-                    if (CurrentSource.GateInputIDs[j] == 0)
-                        CurrentSource.Gates[j].Input1 = true;
-                    else
-                        CurrentSource.Gates[j].Input2 = true;
+                    CurrentSource.Gates[j].Inputs[CurrentSource.GateInputIDs[j]] = true;
                 }
             }
         }
@@ -433,8 +406,7 @@ public class Gates : MonoBehaviour {
             for (int i = 0; i < CurrentGates.Count; i++)
             {
                 // Stop power
-                //CurrentGates[i].Input1 = false;
-                CurrentGates[i].Input2 = false;
+                CurrentGates[i].SetInputs(false, false);
                 CurrentGates[i].Output = false;
                 CurrentGates[i].ColourWires();
             }
@@ -449,10 +421,7 @@ public class Gates : MonoBehaviour {
                 for (int j = 0; j < InputConnections[i].Gates.Count; j++)
                 {
                     // Un-power gate
-                    if (CurrentSource.GateInputIDs[j] == 0)
-                        CurrentSource.Gates[j].Input1 = false;
-                    else
-                        CurrentSource.Gates[j].Input2 = false;
+                    CurrentSource.Gates[j].Inputs[CurrentSource.GateInputIDs[j]] = false;
                 }
             }
         }

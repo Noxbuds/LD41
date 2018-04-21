@@ -16,26 +16,22 @@ public class GateBehaviour : MonoBehaviour {
     public bool Working; // Whether the gate is working or not (could be damaged)
 
     // The input and output booleans
-    public bool Input1;
-    public bool Input2;
+    public bool[] Inputs;
     public bool Output;
 
     // Optional: source connections
     // The actual source will hold the wire(s)
-    public Gates.SourceConnection Source1;
-    public Gates.SourceConnection Source2;
+    public Gates.SourceConnection[] Sources;
 
     // Optional: end connection
     public Gates.SourceConnection EndConnection;
 
     // Source/end wires
-    public LineRenderer Source1Wire;
-    public LineRenderer Source2Wire;
+    public LineRenderer[] SourceWires;
     public LineRenderer EndWire;
 
     // The gates connected to inputs
-    public GateBehaviour Input1Gate;
-    public GateBehaviour Input2Gate;
+    public GateBehaviour[] InputGates;
 
     /// The gate connected to the output
     public GateBehaviour OutputGate;
@@ -51,12 +47,38 @@ public class GateBehaviour : MonoBehaviour {
     /// </summary>
     public int OGCID;
 
+    // Set the inputs of the gate
+    public void SetInputs(bool Input1, bool Input2)
+    {
+        // Make sure things are initialised
+        if (Inputs == null)
+        {
+            Inputs = new bool[2];
+            Sources = new Gates.SourceConnection[2];
+            SourceWires = new LineRenderer[2];
+            InputGates = new GateBehaviour[2];
+        }
+
+        // Assign things
+        Inputs[0] = Input1;
+        Inputs[1] = Input2;
+    }
+
 	// Run when necessary to check inputs; an update function
     // on every single gate is wasteful!
     public void RunLogic()
     {
+        // Make sure things are initialised
+        if (Inputs == null)
+        {
+            Inputs = new bool[2];
+            Sources = new Gates.SourceConnection[2];
+            SourceWires = new LineRenderer[2];
+            InputGates = new GateBehaviour[2];
+        }
+
         // Just assign the output to the result of Gates.GetOutput()
-        Output = Gates.GetOutput(LogicGate, Input1, Input2);
+        Output = Gates.GetOutput(LogicGate, Inputs[0], Inputs[1]);
 
         // Colour the wires
         ColourWires();
@@ -67,9 +89,9 @@ public class GateBehaviour : MonoBehaviour {
             // Check the OGCID; if it's 0, connect to the first input,
             // otherwise, connect to the second input
             if (OGCID == 0)
-                OutputGate.Input1 = Output;
+                OutputGate.Inputs[0] = Output;
             else
-                OutputGate.Input2 = Output;
+                OutputGate.Inputs[1] = Output;
         }
 
         // Assign the end's output
@@ -92,46 +114,46 @@ public class GateBehaviour : MonoBehaviour {
     {
         // Make sure all connections are removed
         // Sever first input connection
-        if (Input1Gate != null)
+        if (InputGates[0] != null)
         {
-            Destroy(Input1Gate.WireObject);
-            Input1Gate.OutputGate = null;
-            Input1Gate = null;
+            Destroy(InputGates[0].WireObject);
+            InputGates[0].OutputGate = null;
+            InputGates[0] = null;
         }
         
         // Sever second input connection
-        if (Input2Gate != null)
+        if (InputGates[1] != null)
         {
-            Destroy(Input2Gate.WireObject);
-            Input2Gate.OutputGate = null;
-            Input2Gate = null;
+            Destroy(InputGates[1].WireObject);
+            InputGates[1].OutputGate = null;
+            InputGates[1] = null;
         }
 
         // Sever the output connection
         if (OutputGate != null)
         {
             if (OGCID == 0)
-                OutputGate.Input1Gate = null;
+                OutputGate.InputGates[0] = null;
             else
-                OutputGate.Input2Gate = null;
+                OutputGate.InputGates[1] = null;
         }
         
         // Sever connections to sources
-        if (Source1 != null)
-            Source1.RemoveConnections(Source1.GetGateID(this));
+        if (Sources[0] != null)
+            Sources[0].RemoveConnections(Sources[0].GetGateID(this));
 
-        if (Source2 != null)
-            Source2.RemoveConnections(Source2.GetGateID(this));
+        if (Sources[1] != null)
+            Sources[1].RemoveConnections(Sources[1].GetGateID(this));
 
         if (EndConnection != null)
             EndConnection.RemoveConnections(EndConnection.GetGateID(this));
 
         // Delete source/end wires
-        if (Source1Wire != null)
-            Destroy(Source1Wire);
+        if (SourceWires[0] != null)
+            Destroy(SourceWires[0]);
 
-        if (Source2Wire != null)
-            Destroy(Source2Wire);
+        if (SourceWires[1] != null)
+            Destroy(SourceWires[1]);
 
         if (EndWire != null)
             Destroy(EndWire);
@@ -166,23 +188,23 @@ public class GateBehaviour : MonoBehaviour {
         }
 
         // Change the first source wire colours
-        if (Input1 && Source1Wire != null)
+        if (Inputs[0] && SourceWires[0] != null)
         {
-            Source1Wire.startColor = Source1Wire.endColor = PoweredColour;
+            SourceWires[0].startColor = SourceWires[0].endColor = PoweredColour;
         }
-        else if (Source1Wire != null)
+        else if (SourceWires[0] != null)
         {
-            Source1Wire.startColor = Source1Wire.endColor = UnpoweredColour;
+            SourceWires[0].startColor = SourceWires[0].endColor = UnpoweredColour;
         }
 
         // Change the second source wire colours
-        if (Input2 && Source2Wire != null)
+        if (Inputs[1] && SourceWires[1] != null)
         {
-            Source2Wire.startColor = Source2Wire.endColor = PoweredColour;
+            SourceWires[1].startColor = SourceWires[1].endColor = PoweredColour;
         }
-        else if (Source2Wire != null)
+        else if (SourceWires[1] != null)
         {
-            Source2Wire.startColor = Source2Wire.endColor = UnpoweredColour;
+            SourceWires[1].startColor = SourceWires[1].endColor = UnpoweredColour;
         }
     }
 }
