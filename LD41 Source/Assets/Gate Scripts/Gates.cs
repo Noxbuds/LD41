@@ -231,9 +231,21 @@ public class Gates : MonoBehaviour {
         public int GateInputID;
     }
 
-    // A list of inputs and outputs
-    public List<bool> Inputs;
-    public List<bool> Outputs;
+    // A type for holding data about an input or ouput
+    [System.Serializable]
+    public struct InputOutputData
+    {
+        // Whether this is powered or not
+        public bool Powered;
+
+        // The position of this connection
+        public Vector2 Position;
+    }
+
+    // A list of inputs and outputs, and their positions
+    // Note: Inputs and outputs must be setup on a per-level basis
+    public List<InputOutputData> Inputs;
+    public List<InputOutputData> Outputs;
 
     // And a list of input and output connections
     public List<SourceConnection> InputConnections;
