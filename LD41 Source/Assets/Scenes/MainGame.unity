@@ -479,6 +479,16 @@ Prefab:
       propertyPath: PickupSound
       value: 
       objectReference: {fileID: 751656513}
+    - target: {fileID: 114152352645034216, guid: a9ea8d09a2720e1499706e8e5fdf30a7,
+        type: 2}
+      propertyPath: WireMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: fefb6781aefd41a4391a5e75be2abdff, type: 2}
+    - target: {fileID: 114152352645034216, guid: a9ea8d09a2720e1499706e8e5fdf30a7,
+        type: 2}
+      propertyPath: CrossButtonTex
+      value: 
+      objectReference: {fileID: 2800000, guid: 2badc8761962b5547b6e8f39a82437e5, type: 3}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: a9ea8d09a2720e1499706e8e5fdf30a7, type: 2}
   m_IsPrefabParent: 0

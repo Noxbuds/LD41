@@ -23,6 +23,12 @@ public class GateBehaviour : MonoBehaviour {
     /// The gate connected to the output
     public GateBehaviour OutputGate;
 
+    // The line renderer attached to this
+    // Side note on how they work:
+    // Each gate will have one line renderer, their output. This will just draw from the
+    // output terminal to the input terminal it's connected to. :)
+    public LineRenderer WireObject;
+
     /// <summary>
     /// Output Gate Connection ID; the ID of the input in OutputGate that Output is connected to
     /// </summary>
@@ -35,6 +41,16 @@ public class GateBehaviour : MonoBehaviour {
         // Just assign the output to the result of Gates.GetOutput()
         Output = Gates.GetOutput(LogicGate, Input1, Input2);
 
+        // Colour the wire in if it's active
+        if (Output && WireObject != null)
+        {
+            WireObject.startColor = WireObject.endColor = new Color(249f / 255f, 1, 116f / 255f);
+        }
+        else if (WireObject != null)
+        {
+            WireObject.startColor = WireObject.endColor = Color.white;
+        }
+
         // Assign the next gate's output
         if (OutputGate != null)
         {
@@ -46,11 +62,46 @@ public class GateBehaviour : MonoBehaviour {
                 OutputGate.Input2 = Output;
         }
 
-        /*
+        
         // Log stuff
-        Debug.Log("Running logic for gate '" + gameObject.name + "'...");
+        /*Debug.Log("Running logic for gate '" + gameObject.name + "'...");
         Debug.Log("Input gate 1 is '" + ((Input1Gate != null) ? Input1Gate.gameObject.name + "'" : "null'"));
         Debug.Log("Input gate 2 is '" + ((Input2Gate != null) ? Input2Gate.gameObject.name + "'" : "null'"));
         Debug.Log("Connected to gate '" + ((OutputGate == null) ? "null'" : OutputGate.gameObject.name + "'") + ", setting that gate's input #" + (OGCID + 1) + " to " + (Output ? "true" : "false"));*/
+    }
+
+    /// <summary>
+    /// Custom delete function. Necessary for deleting wires and removing connections
+    /// </summary>
+    public void Delete()
+    {
+        // Make sure all connections are removed
+        // Sever first input connection
+        if (Input1Gate != null)
+        {
+            Destroy(Input1Gate.WireObject);
+            Input1Gate.OutputGate = null;
+            Input1Gate = null;
+        }
+        
+        // Sever second input connection
+        if (Input2Gate != null)
+        {
+            Destroy(Input2Gate.WireObject);
+            Input2Gate.OutputGate = null;
+            Input2Gate = null;
+        }
+
+        // Sever the output connection
+        if (OutputGate != null)
+        {
+            if (OGCID == 0)
+                OutputGate.Input1Gate = null;
+            else
+                OutputGate.Input2Gate = null;
+        }
+
+        // Destroy the gate. Any line renderers that are children to this should be destroyed too
+        Destroy(this.gameObject);
     }
 }

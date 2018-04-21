@@ -45,6 +45,7 @@ public class Gates : MonoBehaviour {
     public static LogicGate Gate_NOR;
     public static LogicGate Gate_XNOR;
     public static LogicGate Gate_NOT;
+    public static LogicGate Gate_Power;
 
     // Sets up the logic gates
     public static void SetupGates()
@@ -125,8 +126,8 @@ public class Gates : MonoBehaviour {
         Gate_NOT.HasOneInput = true;
 
         // NOT Gate outputs.
-        Gate_NOT.Output00 = false;
-        Gate_NOT.Output01 = true;
+        Gate_NOT.Output00 = true;
+        Gate_NOT.Output01 = false;
         Gate_NOT.Output10 = true;
         Gate_NOT.Output11 = false;
     }
@@ -181,6 +182,7 @@ public class Gates : MonoBehaviour {
         // Setup gate behaviour
         GateBehaviour GateScript = GateObject.AddComponent<GateBehaviour>();
         GateScript.LogicGate = Gate;
+        GateScript.Working = true;
 
         // Setup sprite renderer
         SpriteRenderer GateSR = GateObject.AddComponent<SpriteRenderer>();
@@ -200,8 +202,14 @@ public class Gates : MonoBehaviour {
     /// <param name="GateIndex">The index in the CurrentGates list</param>
     public static void DestroyGate(int GateIndex)
     {
-        // Just destroy the game object
-        GameObject.Destroy(CurrentGates[GateIndex].gameObject);
+        // Store a temporary copy
+        GateBehaviour CurrentGate = CurrentGates[GateIndex];
+
+        // Remove the gate
+        CurrentGates.RemoveAt(GateIndex);
+
+        // Then run the delete method
+        CurrentGate.Delete();
     }
 
     /// <summary>
@@ -233,7 +241,7 @@ public class Gates : MonoBehaviour {
     public struct SourceConnection
     {
         // The gate that's connected
-        public GateBehaviour Gate;
+        public List<GateBehaviour> Gates;
 
         // The ID of the source/output it's connected to
         public int SourceID;
@@ -242,7 +250,7 @@ public class Gates : MonoBehaviour {
         public bool IsInputConnection;
 
         // The ID of the input on the gate this is connected to (not always used)
-        public int GateInputID;
+        public List<int> GateInputIDs;
     }
 
     // A type for holding data about an input or ouput
@@ -293,7 +301,7 @@ public class Gates : MonoBehaviour {
         // Setup the gates first
         SetupGates();
         GateParent = new GameObject();
-        GateParent.transform.position = new Vector2(0, 0);
+        GateParent.transform.position = new Vector3(0, 0, 5);
         GateParent.name = "Logic Gate Parent Object";
 
         // Assign the sprites
@@ -301,6 +309,33 @@ public class Gates : MonoBehaviour {
 
         // Get the level manager
         _LevelManager = GameObject.FindObjectOfType<LevelManager>();
+
+        // Initialise the source connections
+        InputConnections = new List<SourceConnection>();
+        OutputConnections = new List<SourceConnection>();
+
+        // Add a source connection for each input and output
+        for (int i = 0; i < Inputs.Count; i++)
+        {
+            SourceConnection NewConnection = new SourceConnection();
+            NewConnection.IsInputConnection = true;
+            NewConnection.SourceID = i;
+            NewConnection.Gates = new List<GateBehaviour>();
+            NewConnection.GateInputIDs = new List<int>();
+
+            InputConnections.Add(NewConnection);
+        }
+
+        for (int i = 0; i < Outputs.Count; i++)
+        {
+            SourceConnection NewConnection = new SourceConnection();
+            NewConnection.IsInputConnection = false;
+            NewConnection.SourceID = i;
+            NewConnection.Gates = new List<GateBehaviour>();
+            NewConnection.GateInputIDs = new List<int>();
+
+            OutputConnections.Add(NewConnection);
+        }
     }
 
     /// <summary>

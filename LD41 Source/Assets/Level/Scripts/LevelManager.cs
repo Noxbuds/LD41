@@ -38,15 +38,19 @@ public class LevelManager : MonoBehaviour {
     private GameObject FGPanelObj;
     private GameObject SwitchObj;
     private GameObject PanelsRoot;
+    private Player ThePlayer;
 
 	// Use this for initialization
 	void Start () {
 		// Setup the level
         ViewingPanel = true;
 
+        // Get the player
+        ThePlayer = GameObject.FindObjectOfType<Player>();
+
         // Tidy up a bit
         PanelsRoot = new GameObject();
-        PanelsRoot.transform.position = new Vector2(0, 0);
+        PanelsRoot.transform.position = new Vector3(0, 0, 5);
         PanelsRoot.name = "Panel Root Object";
 
         // Initialise the BG Panel Objects list
@@ -74,6 +78,9 @@ public class LevelManager : MonoBehaviour {
                 SwitchObj = Instantiate(SwitchPrefab, LargeSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
+
+                ThePlayer.SourceBasePos = new Vector2(-0.15f, 0.1f);
+                ThePlayer.OutBasePos = new Vector2(0.15f, 0.1f);
                 break;
             case EPanelSize.Medium:
                 FGPanelObj = Instantiate(MediumPanel);
@@ -83,6 +90,9 @@ public class LevelManager : MonoBehaviour {
                 SwitchObj = Instantiate(SwitchPrefab, MediumSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
+
+                ThePlayer.SourceBasePos = new Vector2(-0.24f, 0.1f);
+                ThePlayer.OutBasePos = new Vector2(0.22f, 0.1f);
                 break;
             case EPanelSize.Small:
                 FGPanelObj = Instantiate(SmallPanel);
@@ -92,6 +102,9 @@ public class LevelManager : MonoBehaviour {
                 SwitchObj = Instantiate(SwitchPrefab, SmallSwitchPos, new Quaternion(0, 0, 0, 0));
                 SwitchObj.name = "panel switch";
                 SwitchObj.transform.parent = PanelsRoot.transform;
+
+                ThePlayer.SourceBasePos = new Vector2(-0.24f, 0.19f);
+                ThePlayer.OutBasePos = new Vector2(0.22f, 0.19f);
                 break;
         }
 	}
