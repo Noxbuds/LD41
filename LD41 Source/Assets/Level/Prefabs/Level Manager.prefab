@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4348003069865568}
   - component: {fileID: 114662597966605336}
+  - component: {fileID: 114038617601977442}
   m_Layer: 0
   m_Name: Level Manager
   m_TagString: Untagged
@@ -40,6 +41,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114038617601977442
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1400631889021564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 413f40c8853b62048aeb187323cbfce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurrentLevelUI: 0
+  ShowingLevelUI: 0
+  LevelUIs: []
+  ReportBackground: {fileID: 2800000, guid: c225d40419659804bb61531a1414cd02, type: 3}
+  ButtonImage: {fileID: 2800000, guid: 13592544a9b01284d91482c0b8615a41, type: 3}
+  ButtonImageHover: {fileID: 2800000, guid: cc7e42462fa1ecb4198e187ecc246000, type: 3}
+  ReportFont: {fileID: 12800000, guid: 13a84652a030dfa41834fefebf591d9a, type: 3}
 --- !u!114 &114662597966605336
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -53,6 +72,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LevelNumber: 0
   ViewingPanel: 0
+  NextLevelFlag: 0
   BoundsLeft: 20
   BoundsUp: 220
   BoundsRight: 220
@@ -72,6 +92,7 @@ MonoBehaviour:
   EnemyShipPrefab: {fileID: 1901528115576954, guid: 6279d2b980bdd4a47a4f1887ed0d20e8,
     type: 2}
   EnemyCount: 0
+  CameraShake: 0
   SmallSwitchPos: {x: 0.11, y: -0.11}
   MediumSwitchPos: {x: 0.18, y: -0.11}
   LargeSwitchPos: {x: 0.18, y: -0.2}

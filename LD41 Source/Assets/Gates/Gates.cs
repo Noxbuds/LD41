@@ -37,7 +37,7 @@ public class Gates : MonoBehaviour {
 
     // A list of currently spawned gates
     public static List<GateBehaviour> CurrentGates;
-    private static GameObject GateParent;
+    public static GameObject GateParent;
 
     // Create a static set of logic gates
     // AND Gate first
@@ -208,7 +208,7 @@ public class Gates : MonoBehaviour {
         // Setup sprite renderer
         SpriteRenderer GateSR = GateObject.AddComponent<SpriteRenderer>();
         GateSR.sprite = Gate.GateSprite;
-        GateSR.sortingOrder = 2;
+        GateSR.sortingOrder = 3;
 
         // Add the gate to the list, bearing in mind we need the GateBehaviour
         CurrentGates.Add(GateScript);
@@ -285,6 +285,12 @@ public class Gates : MonoBehaviour {
 
         // Whether or not it's powered
         public bool Powered;
+
+        // The label for it
+        public string Label;
+
+        // The description for it
+        public string Description;
 
         /// <summary>
         /// Removes connections
@@ -434,6 +440,9 @@ public class Gates : MonoBehaviour {
         {
             OutputConnections[i].RemoveAllConnections();
         }
+
+        // Play the sound
+        Camera.main.GetComponent<AudioSource>().Play();
     }
 
     /// <summary>

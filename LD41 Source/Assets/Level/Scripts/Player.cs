@@ -249,24 +249,35 @@ public class Player : MonoBehaviour {
     /// <summary>
     /// Handles tooltips for tools
     /// </summary>
-    void HandleTooltip(string ToolName, float UIScale, float ToolBaseX, int Position)
+    void HandleTooltip(string ToolName, float UIScale, float ToolBaseX, int Position, string Tooltip = "", bool PositionIsY = false, bool IsInput = true)
     {
-        // Create a tooltip variable
-        string Tooltip = "";
-
-        // First get the tooltip
-        if (ToolName == "AND") Tooltip = Gates.Gate_AND.GateDescription;
-        if (ToolName == "OR") Tooltip = Gates.Gate_OR.GateDescription;
-        if (ToolName == "XOR") Tooltip = Gates.Gate_XOR.GateDescription;
-        if (ToolName == "NAND") Tooltip = Gates.Gate_NAND.GateDescription;
-        if (ToolName == "NOR") Tooltip = Gates.Gate_NOR.GateDescription;
-        if (ToolName == "XNOR") Tooltip = Gates.Gate_XNOR.GateDescription;
-        if (ToolName == "NOT") Tooltip = Gates.Gate_NOT.GateDescription;
-        if (ToolName == "Wire") Tooltip = "Place wires to connect logic gates, inputs and outputs.";
-        if (ToolName == "Ship") Tooltip = "Return to the ship's bridge and get back into the action!";
+        // Only assign tooltip if it hasn't been already
+        if (Tooltip == "")
+        {
+            // First get the tooltip
+            if (ToolName == "AND") Tooltip = Gates.Gate_AND.GateDescription;
+            if (ToolName == "OR") Tooltip = Gates.Gate_OR.GateDescription;
+            if (ToolName == "XOR") Tooltip = Gates.Gate_XOR.GateDescription;
+            if (ToolName == "NAND") Tooltip = Gates.Gate_NAND.GateDescription;
+            if (ToolName == "NOR") Tooltip = Gates.Gate_NOR.GateDescription;
+            if (ToolName == "XNOR") Tooltip = Gates.Gate_XNOR.GateDescription;
+            if (ToolName == "NOT") Tooltip = Gates.Gate_NOT.GateDescription;
+            if (ToolName == "Wire") Tooltip = "Place wires to connect logic gates, inputs and outputs.";
+            if (ToolName == "Ship") Tooltip = "Return to the ship's bridge and get back into the action!";
+        }
 
         // Now create a rect for the tooltip position
-        Rect TooltipPosition = new Rect(ToolBaseX + 40f * UIScale + 240f * UIScale * Position, 70f * UIScale, 160f * UIScale, 160f * UIScale);
+        Rect TooltipPosition;
+
+        if (!PositionIsY)
+            TooltipPosition = new Rect(ToolBaseX + 40f * UIScale + 240f * UIScale * Position, 70f * UIScale, 160f * UIScale, 160f * UIScale);
+        else
+        {
+            if (IsInput)
+                TooltipPosition = new Rect(SourceBasePos.x, SourceBasePos.y + 90f * Position * UIScale, 28f * UIScale, 28f * UIScale);
+            else
+                TooltipPosition = new Rect(OutBasePos.x, OutBasePos.y + 90f * Position * UIScale, 28f * UIScale, 28f * UIScale);
+        }
 
         // Need a different mouse vector, since the y pos is wrong (o.0)
         Vector2 MousePosition = Input.mousePosition;
@@ -291,13 +302,13 @@ public class Player : MonoBehaviour {
 
             // Set the base X position
             float TooltipX = TooltipPosition.x;
-            float TooltipWidth = 400f * UIScale * WidthMult;
+            float TooltipWidth = 400f * WidthMult;
 
             // Make sure it'll be on-screen
             if (TooltipPosition.x + TooltipWidth > Screen.width * 0.9f)
                 TooltipX = Screen.width * 0.9f - TooltipWidth;
 
-            GUI.Box(new Rect(TooltipX, TooltipPosition.y, TooltipWidth, 100f * UIScale), ToolName + "\n\n" + Tooltip, ToolMiscStyle);
+            GUI.Box(new Rect(TooltipX, TooltipPosition.y, TooltipWidth, 100f), ToolName + "\n\n" + Tooltip, ToolMiscStyle);
         }
     }
 
@@ -433,6 +444,9 @@ public class Player : MonoBehaviour {
                         }
                     }
                 }
+
+                // Handle the tooltip
+                HandleTooltip("Label", UIScale, 0, i, "Description", true);
             }
 
             // Render outputs
@@ -569,6 +583,7 @@ public class Player : MonoBehaviour {
 
                 // View panel
                 _LevelManager.ViewingPanel = true;
+                _LevelManager.RecalculateUI();
             }
         }
     }

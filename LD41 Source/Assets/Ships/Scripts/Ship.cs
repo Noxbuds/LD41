@@ -17,6 +17,7 @@ public class Ship : MonoBehaviour
     private Gates _Gates;
     private Ship PlayerShip;
     private float HealthShowTimer;
+    private LevelUI _LevelUI;
     public float TargetDistance;
 
     // Whether the player is in sights
@@ -28,7 +29,8 @@ public class Ship : MonoBehaviour
     public float CooldownMargin;
 
     // Sounds
-    public AudioSource EngineSound;
+    public AudioSource HitSound;
+    public AudioSource RailgunSound;
 
     // Ship component
     [System.Serializable]
@@ -91,9 +93,34 @@ public class Ship : MonoBehaviour
             // damage dealt is (old health) - (new health)
             OnDamage(_Health - value);
 
+            // Trigger the next report
+            if (_LevelManager.NextLevelFlag && gameObject.name == "Player Ship")
+            {
+                _LevelUI.ShowingLevelUI = true;
+                _LevelManager.NextLevelFlag = false;
+            }
+
+            // If we reach zero health, it either means we've lost or won. This depends on which ship it is
+            if (value <= 0)
+            {
+                // Hostile ship
+                if (gameObject.name == "Enemy Ship")
+                {
+                    // Current level won, set next level flag
+                    _LevelManager.NextLevelFlag = true;
+
+                    // Only fair that we allow the player to return to full health I guess, it'd be messy if
+                    // you had 1 health pool for all the circuits.
+                    PlayerShip.Health = PlayerShip.MaxHealth;
+
+                    // Now destroy the ship
+                    Destroy(this.gameObject);
+                }
+            }
+
             // Set health show timer
             HealthShowTimer = 1f;
-            
+
             // Assign health
             _Health = value;
         }
@@ -105,10 +132,17 @@ public class Ship : MonoBehaviour
     public float ShieldMultiplier; // The damage multiplier of the shield. Lower values are better
     public bool IsPlayer; // Whether or not this is the player
     public float MaxSpeed;
+    public float Damage; // Damage dealt
 
     // Use this for initialization
     void Start()
     {
+        // Find the level manager
+        _LevelManager = GameObject.FindObjectOfType<LevelManager>();
+
+        // Find the level UI
+        _LevelUI = _LevelManager.GetComponent<LevelUI>();
+
         // Set health to a default value
         _Health = MaxHealth;
 
@@ -126,301 +160,305 @@ public class Ship : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // If the health show timer isn't zero, decrement it
-        if (HealthShowTimer > 0)
-            HealthShowTimer -= Time.deltaTime;
-
-        // Normalize the velocity
-        _Rigidbody.velocity.Normalize();
-
-        // Set torque to zero
-        _Rigidbody.angularVelocity = 0;
-
-        // Decrement shoot timer. If it's greater than Time.deltaTime, then
-        // subtract the delta time, otherwise set the shoot timer to 0 to
-        // stop values like 0.00000000000001
-        if (ShootTimer > Time.deltaTime)
-            ShootTimer -= Time.deltaTime;
-        else if (ShootTimer > 0)
-            ShootTimer = 0;
-
-        // Cool down the railguns
-        if (RailgunTemp > 0)
-            RailgunTemp -= Time.deltaTime * 30f;
-
-        // Bounds checking, wrap around if need be
-        // Checking right boundaries
-        if (transform.position.x > BoundsRight)
-            transform.position += new Vector3(-(BoundsRight - BoundsLeft) + 5, 0);
-
-        // Checking left boundaries
-        if (transform.position.x < BoundsLeft)
-            transform.position += new Vector3(BoundsRight - BoundsLeft - 5, 0);
-
-        // Checking top boundaries
-        if (transform.position.y > BoundsUp)
-            transform.position += new Vector3(0, -(BoundsUp - BoundsDown) + 5); // Wrap around
-
-        // Checking bottom boundaries
-        if (transform.position.y < BoundsDown)
-            transform.position += new Vector3(0, BoundsUp - BoundsDown - 5); // Wrap around
-
-        // Player code
-        if (IsPlayer)
+        // Don't simulate things when paused ...
+        if (Time.timeScale != 0)
         {
-            // If the thrusters are not being fixed, then run them normally
-            if (CurrentComponentId != 1)
-            {
-                // Fly forward
-                if (Input.GetKey(KeyCode.W))
-                {
-                    // Move forward
-                    MoveForward();
+            // If the health show timer isn't zero, decrement it
+            if (HealthShowTimer > 0)
+                HealthShowTimer -= Time.deltaTime;
 
-                    // Activate thrusters
-                    transform.GetChild(0).gameObject.SetActive(true);
+            // Normalize the velocity
+            _Rigidbody.velocity.Normalize();
+
+            // Set torque to zero
+            _Rigidbody.angularVelocity = 0;
+
+            // Decrement shoot timer. If it's greater than Time.deltaTime, then
+            // subtract the delta time, otherwise set the shoot timer to 0 to
+            // stop values like 0.00000000000001
+            if (ShootTimer > Time.deltaTime)
+                ShootTimer -= Time.deltaTime;
+            else if (ShootTimer > 0)
+                ShootTimer = 0;
+
+            // Cool down the railguns
+            if (RailgunTemp > 0)
+                RailgunTemp -= Time.deltaTime * 30f;
+
+            // Bounds checking, wrap around if need be
+            // Checking right boundaries
+            if (transform.position.x > BoundsRight)
+                transform.position += new Vector3(-(BoundsRight - BoundsLeft) + 5, 0);
+
+            // Checking left boundaries
+            if (transform.position.x < BoundsLeft)
+                transform.position += new Vector3(BoundsRight - BoundsLeft - 5, 0);
+
+            // Checking top boundaries
+            if (transform.position.y > BoundsUp)
+                transform.position += new Vector3(0, -(BoundsUp - BoundsDown) + 5); // Wrap around
+
+            // Checking bottom boundaries
+            if (transform.position.y < BoundsDown)
+                transform.position += new Vector3(0, BoundsUp - BoundsDown - 5); // Wrap around
+
+            // Player code
+            if (IsPlayer)
+            {
+                // If the thrusters are not being fixed, then run them normally
+                if (CurrentComponentId != 1)
+                {
+                    // Fly forward
+                    if (Input.GetKey(KeyCode.W))
+                    {
+                        // Move forward
+                        MoveForward();
+
+                        // Activate thrusters
+                        transform.GetChild(0).gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        // Deactivate thrusters
+                        transform.GetChild(0).gameObject.SetActive(false);
+                    }
+
+                    // Rotate
+                    if (Input.GetKey(KeyCode.A))
+                        transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
+
+                    if (Input.GetKey(KeyCode.D))
+                        transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
                 }
                 else
                 {
-                    // Deactivate thrusters
-                    transform.GetChild(0).gameObject.SetActive(false);
+                    // Setup a signal
+                    string InputSignal = "";
+
+                    // Set forward signal
+                    if (Input.GetKey(KeyCode.W))
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set left rotation signal
+                    if (Input.GetKey(KeyCode.A))
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set right rotation signal
+                    if (Input.GetKey(KeyCode.D))
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set inputs
+                    _Gates.SetInputs(InputSignal);
                 }
 
-                // Rotate
-                if (Input.GetKey(KeyCode.A))
-                    transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
-
-                if (Input.GetKey(KeyCode.D))
-                    transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
-            }
-            else
-            {
-                // Setup a signal
-                string InputSignal = "";
-
-                // Set forward signal
-                if (Input.GetKey(KeyCode.W))
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
-
-                // Set left rotation signal
-                if (Input.GetKey(KeyCode.A))
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
-
-                // Set right rotation signal
-                if (Input.GetKey(KeyCode.D))
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
-
-                // Set inputs
-                _Gates.SetInputs(InputSignal);
-            }
-
-            // If the railguns aren't broken, shoot
-            if (CurrentComponentId != 2)
-            {
-                // Don't shoot if overheated
-                if (RailgunTemp < RailOverheatPoint * CooldownMargin)
+                // If the railguns aren't broken, shoot
+                if (CurrentComponentId != 2)
                 {
+                    // Don't shoot if overheated
+                    if (RailgunTemp < RailOverheatPoint * CooldownMargin)
+                    {
+                        if (ShootTimer == 0)
+                        {
+                            // Shoot
+                            if (Input.GetKey(KeyCode.UpArrow))
+                            {
+                                FireRailgun(0);
+                            }
+                            if (Input.GetKey(KeyCode.LeftArrow))
+                            {
+                                FireRailgun(1);
+                            }
+                            if (Input.GetKey(KeyCode.RightArrow))
+                            {
+                                FireRailgun(2);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Setup a signal
+                    string InputSignal = "";
+
+                    // Set forward fire signal
+                    if (Input.GetKey(KeyCode.UpArrow) && ShootTimer == 0)
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set left fire signal
+                    if (Input.GetKey(KeyCode.LeftArrow))
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set right fire signal
+                    if (Input.GetKey(KeyCode.RightArrow))
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Set overheating signal
+                    if (RailgunTemp > RailOverheatPoint * CooldownMargin)
+                        InputSignal += "1";
+                    else
+                        InputSignal += "0";
+
+                    // Send signal
+                    _Gates.SetInputs(InputSignal);
+                }
+
+                // Get the output of the current circuit board
+                string Output = _Gates.GetCurrentOutputs();
+
+                // Handle the output for the current circuit board
+                if (CurrentComponentId == 1)
+                {
+                    // Two thruster 'clusters'
+                    // Left and right - if you power both, you go forward, power only one
+                    // and you turn
+
+                    // Check we have all 2 outputs
+                    if (Output.Length < 2)
+                        Debug.LogError("Too few outputs");
+
+                    // First sort out the rotation, that's pretty easy
+                    // Anti-clockwise rotation
+                    if (Output[0] == '1')
+                        transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
+
+                    // Clockwise rotation
+                    if (Output[1] == '1')
+                        transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
+
+                    // Now for the forward thrust
+                    if (Output[0] == '1' && Output[1] == '1')
+                    {
+                        MoveForward();
+                    }
+                }
+
+                // Railguns
+                if (CurrentComponentId == 2)
+                {
+                    // As in the guide on components
+
+                    // First check we have all outputs
+                    if (Output.Length < 3)
+                        Debug.LogError("Too few outputs");
+
+                    // Shoot every few milliseconds
                     if (ShootTimer == 0)
                     {
-                        // Shoot
-                        if (Input.GetKey(KeyCode.UpArrow))
-                        {
+                        // Forward railgun
+                        if (Output[0] == '1')
+                            // Fire forward railgun
                             FireRailgun(0);
-                        }
-                        if (Input.GetKey(KeyCode.LeftArrow))
-                        {
+
+                        // Left railgun
+                        if (Output[1] == '1')
                             FireRailgun(1);
-                        }
-                        if (Input.GetKey(KeyCode.RightArrow))
-                        {
+
+                        // Right railgun
+                        if (Output[2] == '1')
                             FireRailgun(2);
-                        }
+                    }
+
+                    // Check temperature. If it's too high, fry all the circuits
+                    if (RailgunTemp > RailOverheatPoint)
+                    {
+                        _Gates.FryCircuits();
                     }
                 }
             }
             else
             {
-                // Setup a signal
-                string InputSignal = "";
+                // Enemy code
+                // How hard do we really want to make the AI? :|
 
-                // Set forward fire signal
-                if (Input.GetKey(KeyCode.UpArrow) && ShootTimer == 0)
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
+                // Calculate where to shoot
+                // Estimate travel time to player
+                float ShellTravelTime = Vector2.Distance(PlayerShip.transform.position, this.transform.position) / MaxSpeed;
 
-                // Set left fire signal
-                if (Input.GetKey(KeyCode.LeftArrow))
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
+                // Estimate position
+                Vector2 EstimatedPosition = PlayerShip.transform.position + Vector3.Project(PlayerShip._Rigidbody.velocity, PlayerShip.transform.forward) * ShellTravelTime;
 
-                // Set right fire signal
-                if (Input.GetKey(KeyCode.RightArrow))
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
+                // Aim towards player
+                Vector3 Target = PlayerShip.transform.position - transform.position;
+                Target.Normalize();
+                float TargetAngle = Mathf.Atan2(Target.y, Target.x) * Mathf.Rad2Deg;
 
-                // Set overheating signal
-                if (RailgunTemp > RailOverheatPoint * CooldownMargin)
-                    InputSignal += "1";
-                else
-                    InputSignal += "0";
-
-                // Send signal
-                _Gates.SetInputs(InputSignal);
-            }
-
-            // Get the output of the current circuit board
-            string Output = _Gates.GetCurrentOutputs();
-
-            // Handle the output for the current circuit board
-            if (CurrentComponentId == 1)
-            {
-                // Two thruster 'clusters'
-                // Left and right - if you power both, you go forward, power only one
-                // and you turn
-
-                // Check we have all 2 outputs
-                if (Output.Length < 2)
-                    Debug.LogError("Too few outputs");
-
-                // First sort out the rotation, that's pretty easy
-                // Anti-clockwise rotation
-                if (Output[0] == '1')
-                    transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
-
-                // Clockwise rotation
-                if (Output[1] == '1')
-                    transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
-
-                // Now for the forward thrust
-                if (Output[0] == '1' && Output[1] == '1')
-                {
-                    MoveForward();
-                }
-            }
-
-            // Railguns
-            if (CurrentComponentId == 2)
-            {
-                // As in the guide on components
-
-                // First check we have all outputs
-                if (Output.Length < 3)
-                    Debug.LogError("Too few outputs");
-
-                // Shoot every few milliseconds
-                if (ShootTimer == 0)
-                {
-                    // Forward railgun
-                    if (Output[0] == '1')
-                        // Fire forward railgun
-                        FireRailgun(0);
-
-                    // Left railgun
-                    if (Output[1] == '1')
-                        FireRailgun(1);
-
-                    // Right railgun
-                    if (Output[2] == '1')
-                        FireRailgun(2);
-                }
-
-                // Check temperature. If it's too high, fry all the circuits
-                if (RailgunTemp > RailOverheatPoint)
-                {
-                    _Gates.FryCircuits();
-                }
-            }
-        }
-        else
-        {
-            // Enemy code
-            // How hard do we really want to make the AI? :|
-
-            // Calculate where to shoot
-            // Estimate travel time to player
-            float ShellTravelTime = Vector2.Distance(PlayerShip.transform.position, this.transform.position) / MaxSpeed;
-
-            // Estimate position
-            Vector2 EstimatedPosition = PlayerShip.transform.position + Vector3.Project(PlayerShip._Rigidbody.velocity, PlayerShip.transform.forward) * ShellTravelTime;
-
-            // Aim towards player
-            Vector3 Target = PlayerShip.transform.position - transform.position;
-            Target.Normalize();
-            float TargetAngle = Mathf.Atan2(Target.y, Target.x) * Mathf.Rad2Deg;
-
-            // Aiming to ship
-            // Rotate towards player ship, and shoot
-            if (PlayerShip.transform.position.y > transform.position.y && !PlayerInSights)
-            {
-                // Rotate
-                if (TargetAngle < transform.eulerAngles.z)
-                    transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
-                else
-                    transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
-            }
-            else if (!PlayerInSights)
-            {
-                // Try to get below the player
-                if (transform.eulerAngles.z - 180 > TargetAngle + 180)
-                    transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
-                else
-                    transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
-            }
-
-            // Checking for player being in sights
-            if (PlayerShip.transform.position.y > transform.position.y)
-                // Check for player being in sights
-                PlayerInSights = Mathf.Abs(TargetAngle - transform.eulerAngles.z) < 5;
-            else
-                // Check for player being in sights
-                PlayerInSights = Mathf.Abs((TargetAngle + 180) - (transform.eulerAngles.z - 180)) < 5;
-
-            // Maintaining target distance
-            // Get distance
-            float Distance = Vector2.Distance(this.transform.position, PlayerShip.transform.position);
-
-            // Move away from player if the distance is too far
-            if (Distance < TargetDistance - 0.1f)
-            {
-                // If the player is above the ship, shoot (ai not working properly?)
-                if (PlayerShip.transform.position.y > transform.position.y)
+                // Aiming to ship
+                // Rotate towards player ship, and shoot
+                if (PlayerShip.transform.position.y > transform.position.y && !PlayerInSights)
                 {
                     // Rotate
-                    if (TargetAngle + 180 < transform.eulerAngles.z - 180)
+                    if (TargetAngle < transform.eulerAngles.z)
                         transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
                     else
                         transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
                 }
-                else
+                else if (!PlayerInSights)
                 {
                     // Try to get below the player
-                    if (transform.eulerAngles.z > TargetAngle)
+                    if (transform.eulerAngles.z - 180 > TargetAngle + 180)
                         transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
                     else
                         transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
                 }
 
-                // Move forwards (away from player)
-                MoveForward();
-            }
-            else if (Distance > TargetDistance + 0.1f)
-            {
-                // We're already facing the player, so move towards them
-                MoveForward();
-            }
+                // Checking for player being in sights
+                if (PlayerShip.transform.position.y > transform.position.y)
+                    // Check for player being in sights
+                    PlayerInSights = Mathf.Abs(TargetAngle - transform.eulerAngles.z) < 5;
+                else
+                    // Check for player being in sights
+                    PlayerInSights = Mathf.Abs((TargetAngle + 180) - (transform.eulerAngles.z - 180)) < 5;
 
-            // Shoot
-            if (ShootTimer == 0 && PlayerInSights)
-                FireRailgun(0);
+                // Maintaining target distance
+                // Get distance
+                float Distance = Vector2.Distance(this.transform.position, PlayerShip.transform.position);
+
+                // Move away from player if the distance is too far
+                if (Distance < TargetDistance - 0.1f)
+                {
+                    // If the player is above the ship, shoot (ai not working properly?)
+                    if (PlayerShip.transform.position.y > transform.position.y)
+                    {
+                        // Rotate
+                        if (TargetAngle + 180 < transform.eulerAngles.z - 180)
+                            transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
+                        else
+                            transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
+                    }
+                    else
+                    {
+                        // Try to get below the player
+                        if (transform.eulerAngles.z > TargetAngle)
+                            transform.Rotate(new Vector3(0, 0, -TurnSpeed * Time.deltaTime));
+                        else
+                            transform.Rotate(new Vector3(0, 0, TurnSpeed * Time.deltaTime));
+                    }
+
+                    // Move forwards (away from player)
+                    MoveForward();
+                }
+                else if (Distance > TargetDistance + 0.1f)
+                {
+                    // We're already facing the player, so move towards them
+                    MoveForward();
+                }
+
+                // Shoot
+                if (ShootTimer == 0 && PlayerInSights && RailgunTemp < RailOverheatPoint * CooldownMargin)
+                    FireRailgun(0);
+            }
         }
     }
 
@@ -479,7 +517,7 @@ public class Ship : MonoBehaviour
         // Set parameters on the shell
         RailgunShell ShellScript = Shell.GetComponent<RailgunShell>();
         ShellScript.ArmTimer = 0.05f; // this should be in seconds
-        ShellScript.Damage = 2;
+        ShellScript.Damage = Damage;
 
         // Set rotation
         if (Direction == 0)
@@ -514,12 +552,28 @@ public class Ship : MonoBehaviour
         ShootTimer = 1f / FireSpeed;
 
         // Increase heat
-        RailgunTemp += 20;
+        if (gameObject.name == "Player Ship")
+            RailgunTemp += 20f;
+        else
+            RailgunTemp += 10f * Damage;
+
+        // If the player shoots, play a sound
+        if (gameObject.name == "Player Ship")
+            // Play a sound and stuff
+            if (RailgunSound != null)
+                RailgunSound.Play();
     }
 
     // Triggered when damage is received
     void OnDamage(float amount)
     {
-        // Play a sound and stuff
+        // Play a sound
+        if (HitSound != null)
+            HitSound.Play();
+
+        // Only make camera shake if we're being hit
+        if (gameObject.name == "Player Ship")
+            // Make the camera shake
+            _LevelManager.CameraShake = 1;
     }
 }
