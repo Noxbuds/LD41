@@ -62,7 +62,7 @@ public class RailgunShell : MonoBehaviour {
     }
 
     // Called on collision
-	void OnCollisionEnter2D(Collision2D other)
+	void OnTriggerEnter2D(Collider2D other)
     {
         // Try and fetch the ship
         Ship OtherShip = other.gameObject.GetComponent<Ship>();

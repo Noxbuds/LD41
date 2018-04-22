@@ -52,7 +52,7 @@ public class LevelManager : MonoBehaviour {
     private GameObject PanelsRoot;
     private Player ThePlayer;
     private Ship PlayerShip;
-    private List<Ship> EnemyShips;
+    private Ship EnemyShip;
     private Gates _Gates;
 
 	// Use this for initialization
@@ -67,15 +67,26 @@ public class LevelManager : MonoBehaviour {
         // Get the player
         ThePlayer = GameObject.FindObjectOfType<Player>();
 
-        // Setup ships
+        // Setup player ship
         PlayerShip = Instantiate(PlayerShipPrefab, new Vector2((BoundsRight - BoundsLeft) / 2f, (BoundsUp - BoundsDown) / 2f), new Quaternion(0, 0, 0, 0)).GetComponent<Ship>();
         PlayerShip.transform.SetParent(ThePlayer.transform);
+        PlayerShip.gameObject.name = "Player Ship";
 
         // Set bounds
         PlayerShip.BoundsLeft = BoundsLeft;
         PlayerShip.BoundsRight = BoundsRight;
         PlayerShip.BoundsUp = BoundsUp;
         PlayerShip.BoundsDown = BoundsDown;
+
+        // Setup enemy ship
+        EnemyShip = Instantiate(EnemyShipPrefab, PlayerShip.transform.position * 1.01f, new Quaternion(0, 0, 0, 0)).GetComponent<Ship>();
+        EnemyShip.gameObject.name = "Enemy Ship";
+
+        // Set bounds
+        EnemyShip.BoundsLeft = BoundsLeft;
+        EnemyShip.BoundsRight = BoundsRight;
+        EnemyShip.BoundsUp = BoundsUp;
+        EnemyShip.BoundsDown = BoundsDown;
 
         // New level
         NewLevel(0);
@@ -87,9 +98,6 @@ public class LevelManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        // Set camera rotation to zero
-        Camera.main.transform.Rotate(Camera.main.transform.eulerAngles * -1f);
-
 		// "Animate" the switch
         if (PowerFlowing)
         {
@@ -117,10 +125,9 @@ public class LevelManager : MonoBehaviour {
         {
             // Then we're viewing the ship. Make the camera follow it, and set ortho size lower
             // Orthographic size first. 1 is good, but a zooming thing would be better. Think SC2...
-            Camera.main.orthographicSize = 1;
+            Camera.main.orthographicSize = 2;
 
             // Make the camera follow the ship
-            Camera.main.transform.SetParent(PlayerShip.transform);
             Camera.main.transform.position = new Vector3(PlayerShip.transform.position.x, PlayerShip.transform.position.y, -10);
         }
 	}

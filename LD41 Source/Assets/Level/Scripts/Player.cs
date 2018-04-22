@@ -53,6 +53,10 @@ public class Player : MonoBehaviour {
     public Texture2D[] ToolHoverImages;
     public Texture2D WireToolIcon;
     public Texture2D ShipIcon;
+    public Texture2D PanelIcon;
+    public Texture2D PanelIconHover;
+    public Texture2D TooltipBG;
+    public Font TooltipFont;
 
 	// Use this for initialization
 	void Start ()
@@ -220,6 +224,9 @@ public class Player : MonoBehaviour {
         // Draw button
         if (GUI.Button(new Rect(ToolBaseX + 40f * UIScale + 240f * UIScale * Position, 70f * UIScale, 160f * UIScale, 160f * UIScale), "", ToolMiscStyle))
         {
+            // Play sound
+            PickupSound.Play();
+
             // If we're clicking a gate, select it
             if (IsGate)
             {
@@ -236,6 +243,61 @@ public class Player : MonoBehaviour {
                 if (ToolName == "Ship")
                     _LevelManager.ViewingPanel = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles tooltips for tools
+    /// </summary>
+    void HandleTooltip(string ToolName, float UIScale, float ToolBaseX, int Position)
+    {
+        // Create a tooltip variable
+        string Tooltip = "";
+
+        // First get the tooltip
+        if (ToolName == "AND") Tooltip = Gates.Gate_AND.GateDescription;
+        if (ToolName == "OR") Tooltip = Gates.Gate_OR.GateDescription;
+        if (ToolName == "XOR") Tooltip = Gates.Gate_XOR.GateDescription;
+        if (ToolName == "NAND") Tooltip = Gates.Gate_NAND.GateDescription;
+        if (ToolName == "NOR") Tooltip = Gates.Gate_NOR.GateDescription;
+        if (ToolName == "XNOR") Tooltip = Gates.Gate_XNOR.GateDescription;
+        if (ToolName == "NOT") Tooltip = Gates.Gate_NOT.GateDescription;
+        if (ToolName == "Wire") Tooltip = "Place wires to connect logic gates, inputs and outputs.";
+        if (ToolName == "Ship") Tooltip = "Return to the ship's bridge and get back into the action!";
+
+        // Now create a rect for the tooltip position
+        Rect TooltipPosition = new Rect(ToolBaseX + 40f * UIScale + 240f * UIScale * Position, 70f * UIScale, 160f * UIScale, 160f * UIScale);
+
+        // Need a different mouse vector, since the y pos is wrong (o.0)
+        Vector2 MousePosition = Input.mousePosition;
+        MousePosition.y = Screen.height - MousePosition.y;
+
+        // Make use of the general tool style
+        ToolMiscStyle.normal.background = TooltipBG;
+        ToolMiscStyle.hover.background = TooltipBG;
+        ToolMiscStyle.font = TooltipFont;
+        ToolMiscStyle.normal.textColor = Color.white;
+        ToolMiscStyle.hover.textColor = Color.white;
+
+        // Padding
+        int Padding = (int)(4 * UIScale);
+        ToolMiscStyle.padding = new RectOffset(Padding, Padding, Padding, Padding);
+
+        // Render the tooltip if mouse is in bounds
+        if (TooltipPosition.Contains(MousePosition) && !Input.GetMouseButton(0))
+        {
+            // Calculate width
+            float WidthMult = Tooltip.Length / 40f;
+
+            // Set the base X position
+            float TooltipX = TooltipPosition.x;
+            float TooltipWidth = 400f * UIScale * WidthMult;
+
+            // Make sure it'll be on-screen
+            if (TooltipPosition.x + TooltipWidth > Screen.width * 0.9f)
+                TooltipX = Screen.width * 0.9f - TooltipWidth;
+
+            GUI.Box(new Rect(TooltipX, TooltipPosition.y, TooltipWidth, 100f * UIScale), ToolName + "\n\n" + Tooltip, ToolMiscStyle);
         }
     }
 
@@ -284,7 +346,32 @@ public class Player : MonoBehaviour {
             HandleToolClick(false, "Ship", UIScale, ToolBaseX, 8, ShipIcon);
 
             // Render tooltips
-            // Get this done if, and only if, you have time!
+            // AND Gate
+            HandleTooltip("AND", UIScale, ToolBaseX, 0);
+
+            // OR Gate
+            HandleTooltip("OR", UIScale, ToolBaseX, 1);
+
+            // XOR Gate
+            HandleTooltip("XOR", UIScale, ToolBaseX, 2);
+
+            // NAND Gate
+            HandleTooltip("NAND", UIScale, ToolBaseX, 3);
+
+            // NOR Gate
+            HandleTooltip("NOR", UIScale, ToolBaseX, 4);
+
+            // XNOR Gate
+            HandleTooltip("XNOR", UIScale, ToolBaseX, 5);
+
+            // NOT Gate
+            HandleTooltip("NOT", UIScale, ToolBaseX, 6);
+
+            // Wire tool
+            HandleTooltip("Wire", UIScale, ToolBaseX, 7);
+
+            // Return to ship
+            HandleTooltip("Ship", UIScale, ToolBaseX, 8);
 
             // Render the inputs and outputs
             for (int i = 0; i < _Gates.InputCount; i++)
@@ -459,8 +546,29 @@ public class Player : MonoBehaviour {
                 // Gate delete button
                 if (GUI.Button(new Rect(OutputX, CrossY, OutputWidth, OutputWidth), "", CrossButtonStyle))
                 {
+                    // Play sound
+                    DropSound.Play();
+
+                    // Destroy gate
                     Gates.DestroyGate(Gates.GetGateID(Gates.CurrentGates[i]));
                 }
+            }
+        }
+        else
+        {
+            // Setup a GUI style
+            ToolMiscStyle.normal.background = PanelIcon;
+            ToolMiscStyle.hover.background = PanelIconHover;
+            ToolMiscStyle.active.background = PanelIcon;
+
+            // Create the button
+            if (GUI.Button(new Rect(50f * UIScale, 50f * UIScale, 160f * UIScale, 160f * UIScale), "", ToolMiscStyle))
+            {
+                // Play sound
+                PickupSound.Play();
+
+                // View panel
+                _LevelManager.ViewingPanel = true;
             }
         }
     }

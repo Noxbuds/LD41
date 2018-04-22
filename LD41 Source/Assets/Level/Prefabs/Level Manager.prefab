@@ -54,8 +54,8 @@ MonoBehaviour:
   LevelNumber: 0
   ViewingPanel: 0
   BoundsLeft: 20
-  BoundsUp: 100
-  BoundsRight: 100
+  BoundsUp: 220
+  BoundsRight: 220
   BoundsDown: 20
   LargePanel: {fileID: 1561598861047274, guid: d9b1ff30d2060af4f8a2b436fefd7922, type: 2}
   MediumPanel: {fileID: 1012691028087824, guid: 87df2c49b82c7214fb95bbbecfdfc768,
@@ -69,7 +69,8 @@ MonoBehaviour:
     type: 2}
   PlayerShipPrefab: {fileID: 1318097695291586, guid: 2a5b880721826554bb52b6dfb7b2b061,
     type: 2}
-  EnemyShipPrefab: {fileID: 0}
+  EnemyShipPrefab: {fileID: 1901528115576954, guid: 6279d2b980bdd4a47a4f1887ed0d20e8,
+    type: 2}
   EnemyCount: 0
   SmallSwitchPos: {x: 0.11, y: -0.11}
   MediumSwitchPos: {x: 0.18, y: -0.11}

@@ -63,7 +63,7 @@ public class Gates : MonoBehaviour {
         // Probably don't need to set outputs to false, but it's good to be sure :)
         // AND Gate details
         Gate_AND.GateName = "AND";
-        Gate_AND.GateDescription = "Gives an output if both inputs are on";
+        Gate_AND.GateDescription = "Gives an output if both inputs are on.";
         Gate_AND.HasOneInput = false;
 
         // AND Gate outputs.
@@ -76,7 +76,7 @@ public class Gates : MonoBehaviour {
 
         // OR Gate details
         Gate_OR.GateName = "OR";
-        Gate_OR.GateDescription = "Gives an output if any input is on";
+        Gate_OR.GateDescription = "Gives an output if any input is on.";
         Gate_OR.HasOneInput = false;
 
         // OR Gate outputs.
@@ -89,7 +89,7 @@ public class Gates : MonoBehaviour {
 
         // XOR Gate details
         Gate_XOR.GateName = "XOR";
-        Gate_XOR.GateDescription = "Gives an output only if one input is on";
+        Gate_XOR.GateDescription = "Gives an output only if one input is on.";
         Gate_XOR.HasOneInput = false;
 
         // XOR Gate outputs.
@@ -102,7 +102,7 @@ public class Gates : MonoBehaviour {
 
         // NAND Gate details
         Gate_NAND.GateName = "NAND";
-        Gate_NAND.GateDescription = "Gives an output unless both outputs are on";
+        Gate_NAND.GateDescription = "Gives an output unless both outputs are on.";
         Gate_NAND.HasOneInput = false;
 
         // NAND Gate outputs.
@@ -115,7 +115,7 @@ public class Gates : MonoBehaviour {
 
         // NOR Gate details
         Gate_NOR.GateName = "NOR";
-        Gate_NOR.GateDescription = "Gives an output only if both inputs are on";
+        Gate_NOR.GateDescription = "Gives an output only if both inputs are on.";
         Gate_NOR.HasOneInput = false;
 
         // NOR Gate outputs.
@@ -128,7 +128,7 @@ public class Gates : MonoBehaviour {
 
         // XNOR Gate details
         Gate_XNOR.GateName = "XNOR";
-        Gate_XNOR.GateDescription = "Gives an output if both inputs are on or off at the same time; 00 or 11 provides an output";
+        Gate_XNOR.GateDescription = "Gives an output if both inputs are on or off at the same time; 00 or 11 provides an output.";
         Gate_XNOR.HasOneInput = false;
         
         // XNOR Gate outputs.
@@ -141,7 +141,7 @@ public class Gates : MonoBehaviour {
 
         // NOT Gate details
         Gate_NOT.GateName = "NOT";
-        Gate_NOT.GateDescription = "Inverts an output; if the input is on, the output is off, and vice versa";
+        Gate_NOT.GateDescription = "Inverts an output; if the input is on, the output is off, and vice versa.";
         Gate_NOT.HasOneInput = true;
 
         // NOT Gate outputs.
