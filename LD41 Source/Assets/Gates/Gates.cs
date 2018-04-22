@@ -46,12 +46,16 @@ public class Gates : MonoBehaviour {
     public static LogicGate Gate_XNOR;
     public static LogicGate Gate_NOT;
     public static LogicGate Gate_Power;
+    public static LogicGate[] AllLogicGates;
 
     // Sets up the logic gates
     public static void SetupGates()
     {
         // Initialise the gates list
         CurrentGates = new List<GateBehaviour>();
+
+        // Initialise All Logic Gates array
+        AllLogicGates = new LogicGate[7];
 
         // Probably don't need to set outputs to false, but it's good to be sure :)
         // AND Gate details
@@ -65,6 +69,8 @@ public class Gates : MonoBehaviour {
         Gate_AND.Output10 = false;
         Gate_AND.Output11 = true;
 
+        AllLogicGates[0] = Gate_AND;
+
         // OR Gate details
         Gate_OR.GateName = "OR";
         Gate_OR.GateDescription = "Gives an output if any input is on";
@@ -75,6 +81,8 @@ public class Gates : MonoBehaviour {
         Gate_OR.Output01 = true;
         Gate_OR.Output10 = true;
         Gate_OR.Output11 = true;
+
+        AllLogicGates[1] = Gate_OR;
 
         // XOR Gate details
         Gate_XOR.GateName = "XOR";
@@ -87,6 +95,8 @@ public class Gates : MonoBehaviour {
         Gate_XOR.Output10 = true;
         Gate_XOR.Output11 = false;
 
+        AllLogicGates[2] = Gate_XOR;
+
         // NAND Gate details
         Gate_NAND.GateName = "NAND";
         Gate_NAND.GateDescription = "Gives an output unless both outputs are on";
@@ -97,6 +107,8 @@ public class Gates : MonoBehaviour {
         Gate_NAND.Output01 = true;
         Gate_NAND.Output10 = true;
         Gate_NAND.Output11 = false;
+
+        AllLogicGates[3] = Gate_NAND;
 
         // NOR Gate details
         Gate_NOR.GateName = "NOR";
@@ -109,6 +121,8 @@ public class Gates : MonoBehaviour {
         Gate_NOR.Output10 = false;
         Gate_NOR.Output11 = false;
 
+        AllLogicGates[4] = Gate_NOR;
+
         // XNOR Gate details
         Gate_XNOR.GateName = "XNOR";
         Gate_XNOR.GateDescription = "Gives an output if both inputs are on or off at the same time; 00 or 11 provides an output";
@@ -120,6 +134,8 @@ public class Gates : MonoBehaviour {
         Gate_XNOR.Output10 = true;
         Gate_XNOR.Output11 = false;
 
+        AllLogicGates[5] = Gate_XNOR;
+
         // NOT Gate details
         Gate_NOT.GateName = "NOT";
         Gate_NOT.GateDescription = "Inverts an output; if the input is on, the output is off, and vice versa";
@@ -130,6 +146,8 @@ public class Gates : MonoBehaviour {
         Gate_NOT.Output01 = false;
         Gate_NOT.Output10 = true;
         Gate_NOT.Output11 = false;
+
+        AllLogicGates[6] = Gate_NOT;
     }
     
     /// <summary>
@@ -272,12 +290,15 @@ public class Gates : MonoBehaviour {
                     Destroy(Gates[id].SourceWires[GateInputIDs[id]]);
             }
 
-            // Sever outbound connection
-            Gates[id].EndConnection = null;
+            if (Gates[id].EndConnection == this)
+            {
+                // Sever outbound connection
+                Gates[id].EndConnection = null;
 
-            // Remove end wire
-            if (Gates[id].EndWire != null)
-                Destroy(Gates[id].EndWire);
+                // Remove end wire
+                if (Gates[id].EndWire != null)
+                    Destroy(Gates[id].EndWire);
+            }
 
             // Sever outbound connection
             Gates.RemoveAt(id);
@@ -316,7 +337,7 @@ public class Gates : MonoBehaviour {
     /// <summary>
     /// Assigns sprites to the gates
     /// </summary>
-    void AssignSprites()
+    public void AssignSprites()
     {
         Gate_AND.GateSprite = Sprite_AND;
         Gate_OR.GateSprite = Sprite_OR;
@@ -325,6 +346,47 @@ public class Gates : MonoBehaviour {
         Gate_NOR.GateSprite = Sprite_NOR;
         Gate_XNOR.GateSprite = Sprite_XNOR;
         Gate_NOT.GateSprite = Sprite_NOT;
+    }
+
+    /// <summary>
+    /// Returns the current outputs of the current circuit board
+    /// </summary>
+    /// <returns></returns>
+    public string GetCurrentOutputs()
+    {
+        string OutputString = "";
+
+        // Loop through and setup a binary number in a string
+        for (int i = 0; i < OutputConnections.Count; i++)
+        {
+            if (OutputConnections[i].Powered)
+                OutputString = OutputString + "1";
+            else
+                OutputString = OutputString + "0";
+        }
+        
+        // Return the string
+        return OutputString;
+    }
+
+    /// <summary>
+    /// Set the current inputs
+    /// </summary>
+    /// <param name="Inputs">A binary number (in a string). Each digit is a signal</param>
+    public void SetInputs(string Inputs)
+    {
+        // Loop through each input
+        for (int i = 0; i < Inputs.Length; i++)
+        {
+            // Make sure we're in range still
+            if (InputConnections.Count > i)
+            {
+                if (Inputs[i] == '1')
+                    InputConnections[i].Powered = true;
+                else
+                    InputConnections[i].Powered = false;
+            }
+        }
     }
 
     /// <summary>
@@ -392,11 +454,24 @@ public class Gates : MonoBehaviour {
                 // Get a shorthand reference for the current source
                 SourceConnection CurrentSource = InputConnections[i];
 
-                // Power each gate
-                for (int j = 0; j < InputConnections[i].Gates.Count; j++)
+                // Check if powered
+                if (CurrentSource.Powered)
                 {
-                    // Power gate
-                    CurrentSource.Gates[j].Inputs[CurrentSource.GateInputIDs[j]] = true;
+                    // Power each gate
+                    for (int j = 0; j < InputConnections[i].Gates.Count; j++)
+                    {
+                        // Power gate
+                        CurrentSource.Gates[j].Inputs[CurrentSource.GateInputIDs[j]] = true;
+                    }
+                }
+                else
+                {
+                    // Power each gate
+                    for (int j = 0; j < InputConnections[i].Gates.Count; j++)
+                    {
+                        // Power gate
+                        CurrentSource.Gates[j].Inputs[CurrentSource.GateInputIDs[j]] = false;
+                    }
                 }
             }
         }

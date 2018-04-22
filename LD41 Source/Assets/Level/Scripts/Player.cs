@@ -11,7 +11,7 @@ public class Player : MonoBehaviour {
     // Details about player clicking/toolbox/etc
     public enum PlayerTool
     {
-        PlaceGate, CreateWire, DeleteGate
+        PlaceGate, CreateWire
     }
     public enum GateSelection
     {
@@ -46,10 +46,20 @@ public class Player : MonoBehaviour {
     private GUIStyle CrossButtonStyle;
     public Vector2 SourceBasePos;
     public Vector2 OutBasePos;
+    public Texture2D ToolboxImage;
+    public Texture2D ToolboxButtonImage;
+    private GUIStyle ToolboxButtonStyle;
+    private GUIStyle ToolMiscStyle;
+    public Texture2D[] ToolHoverImages;
+    public Texture2D WireToolIcon;
+    public Texture2D ShipIcon;
 
 	// Use this for initialization
 	void Start ()
     {
+        if (ToolHoverImages == null)
+            Debug.LogError("GateHoverImages is null");
+
         // Necessary for detecting mouse clicks
         Physics.queriesHitTriggers = true;
 
@@ -70,6 +80,11 @@ public class Player : MonoBehaviour {
 
         CrossButtonStyle = new GUIStyle();
         CrossButtonStyle.normal.background = CrossButtonTex;
+
+        ToolboxButtonStyle = new GUIStyle();
+        ToolboxButtonStyle.normal.background = ToolboxButtonImage;
+
+        ToolMiscStyle = new GUIStyle();
 
         // Create preview line. Points will be set in the Update and OnGUI methods
         PreviewLine = new GameObject().AddComponent<LineRenderer>();
@@ -104,17 +119,7 @@ public class Player : MonoBehaviour {
         else
             PreviewLine.gameObject.SetActive(false);
 
-        if (Input.GetKeyUp(KeyCode.Alpha1))
-            CurrentTool = PlayerTool.PlaceGate;
-        if (Input.GetKeyUp(KeyCode.Alpha2))
-            CurrentTool = PlayerTool.CreateWire;
-
-        if (Input.GetKeyUp(KeyCode.A))
-            SelectedGate = GateSelection.AND;
-        else if (Input.GetKeyUp(KeyCode.B))
-            SelectedGate = GateSelection.NOT;
-
-
+        // Handle viewing panel stuff
 		if (_LevelManager.ViewingPanel)
         {
             // Check for player clicks. Record the position if so.
@@ -173,6 +178,67 @@ public class Player : MonoBehaviour {
         }
 	}
 
+    /// <summary>
+    /// Converts a logic gate's name into a gate selection
+    /// </summary>
+    /// <returns></returns>
+    GateSelection GateSelectionFromGateName(string GateName)
+    {
+        switch (GateName)
+        {
+            default:
+            case "AND":
+                return GateSelection.AND;
+            case "OR":
+                return GateSelection.OR;
+            case "XOR":
+                return GateSelection.XOR;
+            case "NAND":
+                return GateSelection.NAND;
+            case "NOR":
+                return GateSelection.NOR;
+            case "XNOR":
+                return GateSelection.XNOR;
+            case "NOT":
+                return GateSelection.NOT;
+        }
+    }
+
+    /// <summary>
+    /// Handles the buttons for toolbox elements
+    /// </summary>
+    void HandleToolClick(bool IsGate, string ToolName, float UIScale, float ToolBaseX, int Position, Texture2D ToolImage)
+    {
+        // Draw the glowy pad thing
+        GUI.DrawTexture(new Rect(ToolBaseX + 240f * UIScale * Position, 30f * UIScale, 240f * UIScale, 240f * UIScale), ToolboxButtonImage);
+
+        // Assign the tool misc style's texture to the logic gate
+        ToolMiscStyle.normal.background = ToolImage;
+        ToolMiscStyle.hover.background = ToolHoverImages[Position];
+        ToolMiscStyle.active.background = ToolImage;
+
+        // Draw button
+        if (GUI.Button(new Rect(ToolBaseX + 40f * UIScale + 240f * UIScale * Position, 70f * UIScale, 160f * UIScale, 160f * UIScale), "", ToolMiscStyle))
+        {
+            // If we're clicking a gate, select it
+            if (IsGate)
+            {
+                SelectedGate = GateSelectionFromGateName(ToolName);
+                CurrentTool = PlayerTool.PlaceGate;
+            }
+            else
+            {
+                // Otherwise select a tool
+                if (ToolName == "Wire")
+                    CurrentTool = PlayerTool.CreateWire;
+
+                // Return to ship
+                if (ToolName == "Ship")
+                    _LevelManager.ViewingPanel = false;
+            }
+        }
+    }
+
     // Draw the player's UI
     void OnGUI()
     {
@@ -183,6 +249,42 @@ public class Player : MonoBehaviour {
         if (_LevelManager.ViewingPanel)
         {
             // Draw a 'toolbox' at the top of the screen
+            // First the tool box itself
+            GUI.DrawTexture(new Rect(0, 0, 2560f * UIScale, 360f * UIScale), ToolboxImage);
+
+            // Then the tools. Loop through the 'all logic gates' list
+            float ToolImageWidth = 240f * UIScale;
+            float ToolBaseX = 50f * UIScale;
+
+            // AND Gate
+            HandleToolClick(true, "AND", UIScale, ToolBaseX, 0, Gates.Gate_AND.GateSprite.texture);
+
+            // OR Gate
+            HandleToolClick(true, "OR", UIScale, ToolBaseX, 1, Gates.Gate_OR.GateSprite.texture);
+
+            // XOR Gate
+            HandleToolClick(true, "XOR", UIScale, ToolBaseX, 2, Gates.Gate_XOR.GateSprite.texture);
+
+            // NAND Gate
+            HandleToolClick(true, "NAND", UIScale, ToolBaseX, 3, Gates.Gate_NAND.GateSprite.texture);
+
+            // NOR Gate
+            HandleToolClick(true, "NOR", UIScale, ToolBaseX, 4, Gates.Gate_NOR.GateSprite.texture);
+
+            // XNOR Gate
+            HandleToolClick(true, "XNOR", UIScale, ToolBaseX, 5, Gates.Gate_XNOR.GateSprite.texture);
+
+            // NOT Gate
+            HandleToolClick(true, "NOT", UIScale, ToolBaseX, 6, Gates.Gate_NOT.GateSprite.texture);
+
+            // Wire tool
+            HandleToolClick(false, "Wire", UIScale, ToolBaseX, 7, WireToolIcon);
+
+            // Return to ship
+            HandleToolClick(false, "Ship", UIScale, ToolBaseX, 8, ShipIcon);
+
+            // Render tooltips
+            // Get this done if, and only if, you have time!
 
             // Render the inputs and outputs
             for (int i = 0; i < _Gates.InputCount; i++)
@@ -210,7 +312,7 @@ public class Player : MonoBehaviour {
                         SourceDraggingFrom = _Gates.InputConnections[i];
                         DraggingOrigin = new Vector2(ButtonX, Screen.height - ButtonY);
                     }
-                    else if (IsDraggingWire && !DraggingOutput)
+                    else if (IsDraggingWire && !DraggingOutput && !DraggingSource && !DraggingEnd)
                     {
                         // Play sound
                         DropSound.Play();
@@ -272,7 +374,7 @@ public class Player : MonoBehaviour {
                         SourceDraggingFrom = _Gates.OutputConnections[i];
                         DraggingOrigin = new Vector2(ButtonX, Screen.height - ButtonY);
                     }
-                    else if (IsDraggingWire && DraggingOutput)
+                    else if (IsDraggingWire && DraggingOutput && !DraggingSource && !DraggingEnd)
                     {
                         // Sever connections first if the output is connected already
                         if (_Gates.OutputConnections[i].Gates.Count > 0)
@@ -501,6 +603,13 @@ public class Player : MonoBehaviour {
             {
                 // Play sound
                 PickupSound.Play();
+
+                // If source connected already, sever that connection
+                // If source-connected already, delete connection
+                if (Gates.CurrentGates[Id].Sources[ConnectionID] != null && Gates.CurrentGates[Id].Sources[ConnectionID] != Gates.CurrentGates[Id].EndConnection)
+                {
+                    Gates.CurrentGates[Id].Sources[ConnectionID].RemoveConnections(Gates.CurrentGates[Id].Sources[ConnectionID].GetGateID(Gates.CurrentGates[Id]));
+                }
 
                 // Fetch all the details we need and set the player to be dragging
                 IsDraggingWire = true;

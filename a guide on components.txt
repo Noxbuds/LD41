@@ -1,0 +1,11 @@
+A quick guide on ship components:
+
+===========================================
+1. Thrusters
+
+Your inputs are as follows (in order):
+- Forward
+- Left
+- Right
+
+===========================================
