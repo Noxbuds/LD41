@@ -16,8 +16,10 @@ public class Ship : MonoBehaviour
     private Rigidbody2D _Rigidbody;
     private Gates _Gates;
 
-    // Local variables
-    private float ShootTimer;
+    // Firing cooldown stuff
+    public float ShootTimer;
+    public float RailgunTemp; // Temperature of the railguns' internals, in degrees C
+    public float CooldownMargin;
 
     // Ship component
     [System.Serializable]
@@ -64,7 +66,7 @@ public class Ship : MonoBehaviour
 
     // Prefabs
     public GameObject RailgunShell;
-
+    
     // Ship stats
     private float _Health;
     public float MaxHealth;
@@ -84,6 +86,10 @@ public class Ship : MonoBehaviour
     }
     public float TurnSpeed; // How fast the ship turns. No actual units assigned, just a multiplier
     public float FireSpeed; // How fast the ship fires. Higher values = faster shooting
+    public float FireForce; // How fast shells travel
+    public float RailOverheatPoint; // Temperature the railguns overheat at
+    public float ShieldMultiplier; // The damage multiplier of the shield. Lower values are better
+    public bool IsPlayer; // Whether or not this is the player
 
     // Use this for initialization
     void Start()
@@ -108,6 +114,10 @@ public class Ship : MonoBehaviour
             ShootTimer -= Time.deltaTime;
         else if (ShootTimer > 0)
             ShootTimer = 0;
+
+        // Cool down the railguns
+        if (RailgunTemp > 0)
+            RailgunTemp -= Time.deltaTime * 15f;
 
         // Bounds checking, wrap around if need be
         // Checking right boundaries
@@ -173,11 +183,61 @@ public class Ship : MonoBehaviour
             _Gates.SetInputs(InputSignal);
         }
 
-        // Shoot
-        if (Input.GetKey(KeyCode.Space) && ShootTimer < 1)
+        // If the railguns aren't broken, shoot
+        if (CurrentComponentId != 2)
         {
-            FireRailguns();
-            ShootTimer = 2f / FireSpeed;
+            // Don't shoot if overheated
+            if (RailgunTemp < RailOverheatPoint)
+            {
+                // Shoot
+                if (Input.GetKey(KeyCode.UpArrow) && ShootTimer == 0)
+                {
+                    FireRailgun(0);
+                    ShootTimer = 2f / FireSpeed;
+                }
+                if (Input.GetKey(KeyCode.LeftArrow) && ShootTimer == 0)
+                {
+                    FireRailgun(1);
+                    ShootTimer = 2f / FireSpeed;
+                }
+                if (Input.GetKey(KeyCode.RightArrow) && ShootTimer == 0)
+                {
+                    FireRailgun(2);
+                    ShootTimer = 2f / FireSpeed;
+                }
+            }
+        }
+        else
+        {
+            // Setup a signal
+            string InputSignal = "";
+
+            // Set forward fire signal
+            if (Input.GetKey(KeyCode.UpArrow) && ShootTimer == 0)
+                InputSignal += "1";
+            else
+                InputSignal += "0";
+
+            // Set left fire signal
+            if (Input.GetKey(KeyCode.LeftArrow))
+                InputSignal += "1";
+            else
+                InputSignal += "0";
+
+            // Set right fire signal
+            if (Input.GetKey(KeyCode.RightArrow))
+                InputSignal += "1";
+            else
+                InputSignal += "0";
+
+            // Set overheating signal
+            if (RailgunTemp > RailOverheatPoint * CooldownMargin)
+                InputSignal += "1";
+            else
+                InputSignal += "0";
+
+            // Send signal
+            _Gates.SetInputs(InputSignal);
         }
 
         // Get the output of the current circuit board
@@ -207,12 +267,77 @@ public class Ship : MonoBehaviour
             if (Output[0] == '1' && Output[1] == '1')
                 _Rigidbody.AddRelativeForce(new Vector2(10, 0));
         }
+
+        // Railguns
+        if (CurrentComponentId == 2)
+        {
+            // As in the guide on components
+
+            // First check we have all outputs
+            if (Output.Length < 3)
+                Debug.LogError("Too few outputs");
+            
+            // Shoot every few milliseconds
+            if (ShootTimer == 0)
+            {
+                // Forward railgun
+                if (Output[0] == '1')
+                    // Fire forward railgun
+                    FireRailgun(0);
+
+                // Left railgun
+                if (Output[1] == '1')
+                    FireRailgun(1);
+
+                // Right railgun
+                if (Output[2] == '1')
+                    FireRailgun(2);
+            }
+
+            // Check temperature. If it's too high, fry all the circuits
+            if (RailgunTemp > RailOverheatPoint)
+            {
+                _Gates.FryCircuits();
+            }
+        }
     }
 
-    // Fire railgung
-    void FireRailguns()
+    // Fire railgun
+    // Directions: 0 = forward, 1 = left, 2 = right
+    void FireRailgun(int Direction)
     {
-        Debug.Log("Pew");
+        // Create a railgun shell
+        GameObject Shell = Instantiate(RailgunShell, this.transform);
+        Shell.transform.localPosition = Vector3.zero;
+
+        // Set parameters on the shell
+        RailgunShell ShellScript = Shell.GetComponent<RailgunShell>();
+        ShellScript.ArmTimer = 1; // this should be in seconds
+        ShellScript.Damage = 2;
+
+        // Set rotation
+        if (Direction == 0)
+            Shell.transform.rotation = transform.rotation;
+        else if (Direction == 1)
+        {
+            Shell.transform.rotation = transform.rotation;
+            Shell.transform.Rotate(new Vector3(0, 0, 45));
+        }
+        else if (Direction == 2)
+        {
+            Shell.transform.rotation = transform.rotation;
+            Shell.transform.Rotate(new Vector3(0, 0, -45));
+        }
+
+        // And give it some force
+        Shell.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(FireForce, 0));
+
+        // Set shoot timer
+        ShootTimer = 1f / FireSpeed;
+
+        // Increase heat
+        if (CurrentComponentId == 2)
+            RailgunTemp += 20;
     }
 
     // Triggered when damage is received

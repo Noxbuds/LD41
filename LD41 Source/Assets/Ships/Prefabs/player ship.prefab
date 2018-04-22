@@ -155,6 +155,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d590be85c9b52ec4bbea6b9df4fc0bac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShootTimer: 0
+  RailgunTemp: 0
+  CooldownMargin: 0.75
   CurrentComponentId: 0
   AllComponents:
   - Name: Empty
@@ -164,17 +167,27 @@ MonoBehaviour:
     OutputCount: 0
   - Name: Thrusters
     Health: 100
-    BoardSize: 1
+    BoardSize: 2
     InputCount: 3
     OutputCount: 2
+  - Name: Railguns
+    Health: 100
+    BoardSize: 1
+    InputCount: 4
+    OutputCount: 3
   BoundsLeft: 0
   BoundsUp: 0
   BoundsRight: 0
   BoundsDown: 0
-  RailgunShell: {fileID: 0}
-  MaxHealth: 0
+  RailgunShell: {fileID: 1265981109910436, guid: 20da4d238cde4a94baa58d472265bdc0,
+    type: 2}
+  MaxHealth: 100
   TurnSpeed: 150
-  FireSpeed: 1
+  FireSpeed: 1.75
+  FireForce: 200
+  RailOverheatPoint: 250
+  ShieldMultiplier: 0
+  IsPlayer: 0
 --- !u!212 &212417884214450700
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -246,7 +259,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: cf5e37e8b31f4864a89f62e71865e84b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

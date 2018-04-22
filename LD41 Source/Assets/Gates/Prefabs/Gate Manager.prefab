@@ -51,12 +51,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbbe67137ec63154ab7710480a32d43f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sprite_AND: {fileID: 0}
-  Sprite_OR: {fileID: 0}
-  Sprite_XOR: {fileID: 0}
-  Sprite_NAND: {fileID: 0}
-  Sprite_NOR: {fileID: 0}
-  Sprite_XNOR: {fileID: 0}
-  Sprite_NOT: {fileID: 0}
-  Inputs: []
-  Outputs: []
+  Sprite_AND: {fileID: 21300000, guid: 6b88254da17f6494f9a961603dfbe0b0, type: 3}
+  Sprite_OR: {fileID: 21300000, guid: b7935c4501024b645b87fa2916b9509e, type: 3}
+  Sprite_XOR: {fileID: 21300000, guid: c1c02a050a592d8489b71045169a1383, type: 3}
+  Sprite_NAND: {fileID: 21300000, guid: 0ed1b98b60499a64a9ce9eb296a489f7, type: 3}
+  Sprite_NOR: {fileID: 21300000, guid: fec06f2a543e7ae4891c7fbc116ae894, type: 3}
+  Sprite_XNOR: {fileID: 21300000, guid: 5a18c53e2ad415c41ab35a52718bae87, type: 3}
+  Sprite_NOT: {fileID: 21300000, guid: dd455f7a7ecf9d64385d6cbb0bd9d309, type: 3}
+  Burned_AND: {fileID: 21300000, guid: db5052f24fd412443af323928898afba, type: 3}
+  Burned_OR: {fileID: 21300000, guid: 602b20f15f912a14d838ecd7110824dd, type: 3}
+  Burned_XOR: {fileID: 21300000, guid: 1bf507238b9443341a20e8dc6ba7ebaf, type: 3}
+  Burned_NAND: {fileID: 21300000, guid: 111dc90e7ae02d34482865af09f4c449, type: 3}
+  Burned_NOR: {fileID: 21300000, guid: be4af6dffdff6b3429ea89c1f451e1b9, type: 3}
+  Burned_XNOR: {fileID: 21300000, guid: 1d28fbd40dc54384bb754ed9fa37605c, type: 3}
+  Burned_NOT: {fileID: 21300000, guid: 5988053b7b1423e4d856299c588bbba2, type: 3}
+  InputCount: 0
+  OutputCount: 0
+  InputConnections: []
+  OutputConnections: []

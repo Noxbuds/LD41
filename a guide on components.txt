@@ -3,9 +3,42 @@ A quick guide on ship components:
 ===========================================
 1. Thrusters
 
+Thrusters are relatively simple, they just push
+you forward or in a direction.
+
 Your inputs are as follows (in order):
-- Forward
-- Left
-- Right
+- Forward; Active when user presses the forward key
+- Left; Active when user presses the 'left turn' key
+- Right; Active when user presses the 'right turn' key
+
+Your outputs are as follows (in order):
+- Left thruster group
+- Right thruster group
+
+If both thruster groups are powered, the ship will move
+forward. However, if only one group is powered, the ship
+will rotate, e.g if you activate the left thrusters you
+will turn clockwise.
+
+===========================================
+2. Railguns
+
+Railguns are a bit more tricky. They generate heat, so
+it is dangerous to fire too much.
+
+Your inputs are as follows (in order):
+- Fire signal; active when user is pressing the 'fire' key
+- Left; when the user is pressing the 'left fire' key
+- Right; when the user is pressing the 'right fire' key
+- Overheating signal; active when railgun is overheating
+
+Your outputs are as follows (in order):
+- Forward Fire; fires the forward railguns
+- Left Fire; fires the railguns to the left of the bridge
+- Right Fire; fires the railguns to the right of the bridge
+
+While you can easily fire all railguns at once, this will
+generate many times more heat, and if your circuit is wired
+safely this will cause it to shoot slower.
 
 ===========================================

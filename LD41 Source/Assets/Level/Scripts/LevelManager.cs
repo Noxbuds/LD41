@@ -72,7 +72,7 @@ public class LevelManager : MonoBehaviour {
         PlayerShip.transform.SetParent(ThePlayer.transform);
 
         // New level
-        NewLevel(1);
+        NewLevel(2);
 
         // Stop viewing panel
         ViewingPanel = false;
@@ -129,6 +129,7 @@ public class LevelManager : MonoBehaviour {
         // Setup inputs and outputs
         _Gates.InputCount = Component.InputCount;
         _Gates.OutputCount = Component.OutputCount;
+        _Gates.Initialise();
         PanelSize = Component.BoardSize;
 
         // Tell the ship

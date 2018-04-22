@@ -18,6 +18,9 @@ public class Gates : MonoBehaviour {
         // We also need a sprite
         public Sprite GateSprite;
 
+        // And a burned sprite
+        public Sprite BurnedSprite;
+
         // Tooltip/description for each logic gate
         public string GateDescription;
 
@@ -254,6 +257,15 @@ public class Gates : MonoBehaviour {
     public Sprite Sprite_XNOR;
     public Sprite Sprite_NOT;
 
+    // Burned sprites
+    public Sprite Burned_AND;
+    public Sprite Burned_OR;
+    public Sprite Burned_XOR;
+    public Sprite Burned_NAND;
+    public Sprite Burned_NOR;
+    public Sprite Burned_XNOR;
+    public Sprite Burned_NOT;
+
     // A type for a connection between a power source/output and a gate
     // Needs to be public since the lists for the connections are...
     [System.Serializable]
@@ -339,6 +351,7 @@ public class Gates : MonoBehaviour {
     /// </summary>
     public void AssignSprites()
     {
+        // Assign normal sprites
         Gate_AND.GateSprite = Sprite_AND;
         Gate_OR.GateSprite = Sprite_OR;
         Gate_XOR.GateSprite = Sprite_XOR;
@@ -346,6 +359,15 @@ public class Gates : MonoBehaviour {
         Gate_NOR.GateSprite = Sprite_NOR;
         Gate_XNOR.GateSprite = Sprite_XNOR;
         Gate_NOT.GateSprite = Sprite_NOT;
+
+        // Assign burned sprites
+        Gate_AND.BurnedSprite = Burned_AND;
+        Gate_OR.BurnedSprite = Burned_OR;
+        Gate_XOR.BurnedSprite = Burned_XOR;
+        Gate_NAND.BurnedSprite = Burned_NAND;
+        Gate_NOR.BurnedSprite = Burned_NOR;
+        Gate_XNOR.BurnedSprite = Burned_XNOR;
+        Gate_NOT.BurnedSprite = Burned_NOT;
     }
 
     /// <summary>
@@ -390,9 +412,34 @@ public class Gates : MonoBehaviour {
     }
 
     /// <summary>
+    /// Fries all circuits. Haha.
+    /// </summary>
+    public void FryCircuits()
+    {
+        // Ruin the gates
+        for (int i = 0; i < CurrentGates.Count; i++)
+        {
+            CurrentGates[i].Working = false;
+            CurrentGates[i].GetComponent<SpriteRenderer>().sprite = CurrentGates[i].LogicGate.BurnedSprite;
+        }
+
+        // Disconnect the inputs
+        for (int i = 0; i < InputConnections.Count; i++)
+        {
+            InputConnections[i].RemoveAllConnections();
+        }
+
+        // Disconnect the outputs
+        for (int i = 0; i < OutputConnections.Count; i++)
+        {
+            OutputConnections[i].RemoveAllConnections();
+        }
+    }
+
+    /// <summary>
     /// Called when the game starts/this object is created
     /// </summary>
-    void Start()
+    public void Initialise()
     {
         // Setup the gates first
         SetupGates();
@@ -439,13 +486,24 @@ public class Gates : MonoBehaviour {
     /// </summary>
     void Update()
     {
+        // Check that we don't keep outputs powered
+        for (int i = 0; i < OutputConnections.Count; i++)
+        {
+            // Get a shorthand reference for the current source
+            SourceConnection CurrentSource = OutputConnections[i];
+
+            // Check that we don't keep something powered unnecessarily
+            if (CurrentSource.Gates.Count < 1)
+                CurrentSource.Powered = false;
+        }
+
+        // Loop through and make power flower
         if (_LevelManager.PowerFlowing)
         {
             // Go through the list of current gates and run the logic if they work
             for (int i = 0; i < CurrentGates.Count; i++)
             {
-                if (CurrentGates[i].Working)
-                    CurrentGates[i].RunLogic();
+                CurrentGates[i].RunLogic();
             }
 
             // Go through the list of power sources and power

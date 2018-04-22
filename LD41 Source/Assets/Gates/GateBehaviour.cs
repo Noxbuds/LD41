@@ -77,11 +77,12 @@ public class GateBehaviour : MonoBehaviour {
             InputGates = new GateBehaviour[2];
         }
 
-        // Just assign the output to the result of Gates.GetOutput()
-        Output = Gates.GetOutput(LogicGate, Inputs[0], Inputs[1]);
-
-        // Colour the wires
-        ColourWires();
+        // Only do logic if it's working
+        if (Working)
+            // Just assign the output to the result of Gates.GetOutput()
+            Output = Gates.GetOutput(LogicGate, Inputs[0], Inputs[1]);
+        else
+            Output = false;
 
         // Assign the next gate's output
         if (OutputGate != null)
@@ -99,6 +100,9 @@ public class GateBehaviour : MonoBehaviour {
         {
             EndConnection.Powered = Output;
         }
+
+        // Colour the wires
+        ColourWires();
         
         // Log stuff
         /*Debug.Log("Running logic for gate '" + gameObject.name + "'...");
