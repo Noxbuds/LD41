@@ -53,8 +53,6 @@ public class Ship : MonoBehaviour
      * 0: None
      * 1: Thrusters
      * 2: Railguns
-     * 3: Shields
-     * 4: Life Support
      */
 
     // Arena boundaries
@@ -90,6 +88,7 @@ public class Ship : MonoBehaviour
     public float RailOverheatPoint; // Temperature the railguns overheat at
     public float ShieldMultiplier; // The damage multiplier of the shield. Lower values are better
     public bool IsPlayer; // Whether or not this is the player
+    public float MaxSpeed;
 
     // Use this for initialization
     void Start()
@@ -107,6 +106,12 @@ public class Ship : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Normalize the velocity
+        _Rigidbody.velocity.Normalize();
+
+        // Set torque to zero
+        _Rigidbody.angularVelocity = 0;
+
         // Decrement shoot timer. If it's greater than Time.deltaTime, then
         // subtract the delta time, otherwise set the shoot timer to 0 to
         // stop values like 0.00000000000001
@@ -122,19 +127,19 @@ public class Ship : MonoBehaviour
         // Bounds checking, wrap around if need be
         // Checking right boundaries
         if (transform.position.x > BoundsRight)
-            transform.Translate(new Vector2(-(BoundsRight - BoundsLeft), 0));
+            transform.position += new Vector3(-(BoundsRight - BoundsLeft) + 5, 0);
 
         // Checking left boundaries
         if (transform.position.x < BoundsLeft)
-            transform.Translate(new Vector2(BoundsRight - BoundsLeft, 0));
+            transform.position += new Vector3(BoundsRight - BoundsLeft - 5, 0);
 
         // Checking top boundaries
         if (transform.position.y > BoundsUp)
-            transform.Translate(new Vector2(0, -(BoundsUp - BoundsDown))); // Wrap around
+            transform.position += new Vector3(0, -(BoundsUp - BoundsDown) + 5); // Wrap around
 
         // Checking bottom boundaries
         if (transform.position.y < BoundsDown)
-            transform.Translate(new Vector2(0, BoundsUp - BoundsDown)); // Wrap around
+            transform.position += new Vector3(0, BoundsUp - BoundsDown - 5); // Wrap around
 
         // If the thrusters are not being fixed, then run them normally
         if (CurrentComponentId != 1)
@@ -142,8 +147,13 @@ public class Ship : MonoBehaviour
             // Fly forward
             if (Input.GetKey(KeyCode.W))
             {
-                // Add a force and enable the thrusters
-                _Rigidbody.AddRelativeForce(new Vector2(10f, 0));
+                // Get the current speed in that direction
+                float FlightSpeed = Vector3.Dot(_Rigidbody.velocity, transform.forward);
+
+                if (FlightSpeed < MaxSpeed)
+                    // Add a force and enable the thrusters
+                    _Rigidbody.AddRelativeForce(new Vector2(10f, 0));
+
                 transform.GetChild(0).gameObject.SetActive(true);
             }
             else
@@ -329,8 +339,20 @@ public class Ship : MonoBehaviour
             Shell.transform.Rotate(new Vector3(0, 0, -45));
         }
 
+        // Give it a base velocity
+        Shell.GetComponent<Rigidbody2D>().velocity = _Rigidbody.velocity;
+
         // And give it some force
         Shell.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(FireForce, 0));
+
+        // Un-parent it
+        Shell.transform.SetParent(null);
+
+        // Set bounds
+        ShellScript.BoundsLeft = BoundsLeft;
+        ShellScript.BoundsUp = BoundsUp;
+        ShellScript.BoundsRight = BoundsRight;
+        ShellScript.BoundsDown = BoundsDown;
 
         // Set shoot timer
         ShootTimer = 1f / FireSpeed;

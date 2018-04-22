@@ -71,8 +71,14 @@ public class LevelManager : MonoBehaviour {
         PlayerShip = Instantiate(PlayerShipPrefab, new Vector2((BoundsRight - BoundsLeft) / 2f, (BoundsUp - BoundsDown) / 2f), new Quaternion(0, 0, 0, 0)).GetComponent<Ship>();
         PlayerShip.transform.SetParent(ThePlayer.transform);
 
+        // Set bounds
+        PlayerShip.BoundsLeft = BoundsLeft;
+        PlayerShip.BoundsRight = BoundsRight;
+        PlayerShip.BoundsUp = BoundsUp;
+        PlayerShip.BoundsDown = BoundsDown;
+
         // New level
-        NewLevel(2);
+        NewLevel(0);
 
         // Stop viewing panel
         ViewingPanel = false;
@@ -81,6 +87,9 @@ public class LevelManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        // Set camera rotation to zero
+        Camera.main.transform.Rotate(Camera.main.transform.eulerAngles * -1f);
+
 		// "Animate" the switch
         if (PowerFlowing)
         {
@@ -95,6 +104,7 @@ public class LevelManager : MonoBehaviour {
         if (ViewingPanel)
         {
             // Set the camera position
+            Camera.main.transform.SetParent(ThePlayer.transform);
             Camera.main.transform.position = new Vector3(0, 0.06f, -10);
 
             // Set camera orthographic size
@@ -110,6 +120,7 @@ public class LevelManager : MonoBehaviour {
             Camera.main.orthographicSize = 1;
 
             // Make the camera follow the ship
+            Camera.main.transform.SetParent(PlayerShip.transform);
             Camera.main.transform.position = new Vector3(PlayerShip.transform.position.x, PlayerShip.transform.position.y, -10);
         }
 	}

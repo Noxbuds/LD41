@@ -183,11 +183,12 @@ MonoBehaviour:
     type: 2}
   MaxHealth: 100
   TurnSpeed: 150
-  FireSpeed: 1.75
-  FireForce: 200
+  FireSpeed: 5
+  FireForce: 400
   RailOverheatPoint: 250
   ShieldMultiplier: 0
   IsPlayer: 0
+  MaxSpeed: 2
 --- !u!212 &212417884214450700
 SpriteRenderer:
   m_ObjectHideFlags: 1
