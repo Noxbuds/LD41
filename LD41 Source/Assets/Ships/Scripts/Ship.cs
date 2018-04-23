@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Ship : MonoBehaviour
@@ -51,6 +52,12 @@ public class Ship : MonoBehaviour
         // Input and output count, for level management
         public int InputCount;
         public int OutputCount;
+
+        // Input and output labels and descriptions
+        public List<string> InputLabels;
+        public List<string> InputDescriptions;
+        public List<string> OutputLabels;
+        public List<string> OutputDescriptions;
     }
     
     // The id of the component currently being targetted
@@ -116,6 +123,8 @@ public class Ship : MonoBehaviour
                     // Now destroy the ship
                     Destroy(this.gameObject);
                 }
+                else
+                    SceneManager.LoadScene("MainMenu");
             }
 
             // Set health show timer
@@ -205,6 +214,18 @@ public class Ship : MonoBehaviour
             // Player code
             if (IsPlayer)
             {
+                // Thruster animations
+                if (Input.GetKey(KeyCode.W))
+                {
+                    // Activate thrusters
+                    transform.GetChild(0).gameObject.SetActive(true);
+                }
+                else
+                {
+                    // Deactivate thrusters
+                    transform.GetChild(0).gameObject.SetActive(false);
+                }
+
                 // If the thrusters are not being fixed, then run them normally
                 if (CurrentComponentId != 1)
                 {
@@ -213,14 +234,6 @@ public class Ship : MonoBehaviour
                     {
                         // Move forward
                         MoveForward();
-
-                        // Activate thrusters
-                        transform.GetChild(0).gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        // Deactivate thrusters
-                        transform.GetChild(0).gameObject.SetActive(false);
                     }
 
                     // Rotate

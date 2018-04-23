@@ -203,5 +203,8 @@ public class LevelUI : MonoBehaviour {
             // Enable UI again
             ShowingLevelUI = true;
         }
+        else if (id == 5)
+            // Close game
+            Application.Quit();
     }
 }

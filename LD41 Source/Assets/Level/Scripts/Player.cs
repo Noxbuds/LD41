@@ -446,7 +446,7 @@ public class Player : MonoBehaviour {
                 }
 
                 // Handle the tooltip
-                HandleTooltip("Label", UIScale, 0, i, "Description", true);
+                HandleTooltip(_Gates.InputConnections[i].Label, UIScale, 0, i, _Gates.InputConnections[i].Description, true);
             }
 
             // Render outputs
@@ -506,6 +506,9 @@ public class Player : MonoBehaviour {
                         GateDraggingFrom.EndWire = NewWire;
                     }
                 }
+
+                // Handle the tooltip
+                HandleTooltip(_Gates.OutputConnections[i].Label, UIScale, 0, i, _Gates.OutputConnections[i].Description, true, false);
             }
 
             // Fetch a local copy of the gates list

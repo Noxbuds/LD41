@@ -380,16 +380,52 @@ MonoBehaviour:
     BoardSize: 0
     InputCount: 0
     OutputCount: 0
+    InputLabels: []
+    InputDescriptions: []
+    OutputLabels: []
+    OutputDescriptions: []
   - Name: Thrusters
     Health: 100
     BoardSize: 2
     InputCount: 3
     OutputCount: 2
+    InputLabels:
+    - Forward
+    - Left
+    - Right
+    InputDescriptions:
+    - Active when user presses the forward key
+    - Active when user presses the 'left turn' key
+    - Active when user presses the 'right turn' key
+    OutputLabels:
+    - Left thrusters
+    - Right thrusters
+    OutputDescriptions:
+    - Powers the left set of thrusters
+    - Powers the right set of thrusters
   - Name: Railguns
     Health: 100
     BoardSize: 1
     InputCount: 4
     OutputCount: 3
+    InputLabels:
+    - Forward fire
+    - Left fire
+    - Right fire
+    - Overheat signal
+    InputDescriptions:
+    - Active when user is pressing the 'main fire' key
+    - Active when the user is pressing the 'left fire' key
+    - Active when the user is pressing the 'right fire' key
+    - Active when railgun is overheating
+    OutputLabels:
+    - Forward fire
+    - Left fire
+    - Right fire
+    OutputDescriptions:
+    - Fires forward railguns
+    - Fires railguns to the left of the bridge
+    - Fires railguns to the right of the bridge
   BoundsLeft: 0
   BoundsUp: 0
   BoundsRight: 0

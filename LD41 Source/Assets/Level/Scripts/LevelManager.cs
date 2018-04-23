@@ -263,6 +263,20 @@ public class LevelManager : MonoBehaviour {
         _Gates.Initialise();
         PanelSize = Component.BoardSize;
 
+        // Set labels and descriptions
+        for (int i = 0; i < Component.InputLabels.Count; i++)
+        {
+            _Gates.InputConnections[i].Label = Component.InputLabels[i];
+            _Gates.InputConnections[i].Description = Component.InputDescriptions[i];
+        }
+
+        // Set labels and descriptions (outputs)
+        for (int i = 0; i < Component.OutputLabels.Count; i++)
+        {
+            _Gates.OutputConnections[i].Label = Component.OutputLabels[i];
+            _Gates.OutputConnections[i].Description = Component.OutputDescriptions[i];
+        }
+
         // Tell the ship
         PlayerShip.CurrentComponentId = NextComponent;
 
